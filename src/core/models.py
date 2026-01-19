@@ -38,6 +38,9 @@ class Company(GlobalOpsBase):
     
     contacts = models.JSONField(default=list, blank=True) # List of contact info objects
 
+    class Meta(GlobalOpsBase.Meta):
+        verbose_name_plural = "Companies"
+
     def __str__(self) -> str:
         return self.name
 

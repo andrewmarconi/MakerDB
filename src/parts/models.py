@@ -51,7 +51,7 @@ class Part(GlobalOpsBase):
     # Meta parts group other parts
     meta_parts = models.ManyToManyField("self", blank=True, symmetrical=False, related_name="meta_parents")
     # Substitute parts
-    substitutes = models.ManyToManyField("self", blank=True, symmetrical=True, related_name="substituted_by")
+    substitutes = models.ManyToManyField("self", blank=True, symmetrical=True)
     
     # If sub-assembly, links to a Project
     project = models.ForeignKey('projects.Project', on_delete=models.SET_NULL, null=True, blank=True, related_name="part_assemblies")

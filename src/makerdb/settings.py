@@ -144,7 +144,44 @@ JAZZMIN_SETTINGS = {
     "welcome_sign": "Welcome to MakerDB",
     "copyright": "MakerDB",
     "search_model": "parts.Part",
-    # "show_ui_builder": True,
+    
+    # UI Customizer
+    "changeform_format": "horizontal_tabs",
+    "changeform_format_overrides": {
+        "auth.user": "collapsible",
+        "auth.group": "vertical_tabs",
+    },
+    
+    # Icons (FontAwesome 5)
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        
+        "core.Company": "fas fa-building",
+        "core.Attachment": "fas fa-paperclip",
+        
+        "parts.Part": "fas fa-microchip",
+        
+        "inventory.Storage": "fas fa-boxes",
+        "inventory.Lot": "fas fa-pallet",
+        "inventory.Stock": "fas fa-cubes",
+        
+        "procurement.Order": "fas fa-shopping-cart",
+        "procurement.Offer": "fas fa-tags",
+        
+        "projects.Project": "fas fa-clipboard-list",
+    },
+    
+    # Menu Ordering
+    "order_with_respect_to": [
+        "projects", 
+        "parts", 
+        "inventory", 
+        "procurement", 
+        "core", 
+        "auth"
+    ],
 }
 
 # Default primary key field type

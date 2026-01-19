@@ -10,6 +10,9 @@ class Storage(GlobalOpsBase):
     
     attachments = models.ManyToManyField(Attachment, blank=True, related_name="storages")
 
+    class Meta(GlobalOpsBase.Meta):
+        verbose_name_plural = "Storage"
+
     def __str__(self) -> str:
         return self.name
 
@@ -64,5 +67,6 @@ class Stock(GlobalOpsBase):
     price_unit = models.DecimalField(max_digits=19, decimal_places=4, null=True, blank=True)
     currency = models.CharField(max_length=3, blank=True) # ISO code
     
-    class Meta:
+    class Meta(GlobalOpsBase.Meta):
         indexes = [] 
+        verbose_name_plural = "Stock"
