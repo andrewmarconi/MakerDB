@@ -36,7 +36,7 @@ const isOpen = ref(false)
 
           <div class="mt-8 space-y-4 w-full">
             <UFormGroup label="Label Format">
-              <USelect :options="['Small (25x12mm)', 'Medium (50x25mm)', 'Large (100x50mm)']" />
+              <USelect :items="['Small (25x12mm)', 'Medium (50x25mm)', 'Large (100x50mm)']" />
             </UFormGroup>
             <UButton label="Print Label" icon="i-heroicons-printer" block color="primary" />
           </div>

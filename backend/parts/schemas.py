@@ -1,7 +1,7 @@
-from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field, ConfigDict
+from typing import List, Optional, Dict, Any, Annotated
+from pydantic import BaseModel, Field, ConfigDict, BeforeValidator
 from uuid import UUID
-from core.schemas import GlobalOpsSchema, CompanySchema, AttachmentSchema
+from core.schemas import GlobalOpsSchema, CompanySchema, AttachmentSchema, convert_m2m_to_list
 
 
 class PartBase(BaseModel):
@@ -60,5 +60,5 @@ class PartSchema(PartBase, GlobalOpsSchema):
     default_storage_id: Optional[UUID] = Field(None, alias="default_storage_id")
     is_default_storage_mandatory: bool = False
     project_id: Optional[UUID] = Field(None, alias="project_id")
-    attachments: List[AttachmentSchema] = Field(default_factory=list)
+    attachments: Annotated[List[AttachmentSchema], BeforeValidator(convert_m2m_to_list)] = Field(default_factory=list)
     total_stock: int

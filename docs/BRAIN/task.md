@@ -96,34 +96,34 @@
   - [ ] Tag autocomplete
 
 ### Storage Locations
-- [ ] Create `/locations/new` page for adding locations
-  - [ ] **Mode Selection**: Single, Row, or Grid
-  - [ ] **Single Mode**:
-    - [ ] Name, description, parent location
+- [x] Create `/locations/new` page for adding locations
+  - [x] **Mode Selection**: Single, Row, or Grid
+  - [x] **Single Mode**:
+    - [x] Name, description, parent location
     - [ ] Location type selector
     - [ ] QR code preview
-  - [ ] **Row Mode**:
-    - [ ] Prefix input (e.g., "Box1-")
-    - [ ] Range type selector (Letters or Numbers)
-    - [ ] Range input (e.g., "A-Z" or "1-20")
-    - [ ] Dynamic preview of generated names
-    - [ ] Count indicator (e.g., "Creating 26 locations")
-    - [ ] Parent location selector
-  - [ ] **Grid Mode**:
-    - [ ] Prefix input (e.g., "Shelf-")
-    - [ ] Row range type (Letters or Numbers)
-    - [ ] Row range input (e.g., "A-D")
-    - [ ] Column range type (Letters or Numbers)
-    - [ ] Column range input (e.g., "1-8")
-    - [ ] Dynamic preview grid visualization
-    - [ ] Count indicator (e.g., "Creating 32 locations")
-    - [ ] Parent location selector
-  - [ ] **Preview Component**:
-    - [ ] Real-time update as user types
-    - [ ] Show first N items + "... and X more"
-    - [ ] Highlight naming conflicts if any exist
-- [ ] Create `/locations/{id}/edit` page for editing locations
-- [ ] Add delete confirmation modal (simple modal is OK)
+  - [x] **Row Mode**:
+    - [x] Prefix input (e.g., "Box1-")
+    - [x] Range type selector (Letters or Numbers)
+    - [x] Range input (e.g., "A-Z" or "1-20")
+    - [x] Dynamic preview of generated names
+    - [x] Count indicator (e.g., "Creating 26 locations")
+    - [x] Parent location selector
+  - [x] **Grid Mode**:
+    - [x] Prefix input (e.g., "Shelf-")
+    - [x] Row range type (Letters or Numbers)
+    - [x] Row range input (e.g., "A-D")
+    - [x] Column range type (Letters or Numbers)
+    - [x] Column range input (e.g., "1-8")
+    - [x] Dynamic preview grid visualization
+    - [x] Count indicator (e.g., "Creating 32 locations")
+    - [x] Parent location selector
+  - [x] **Preview Component**:
+    - [x] Real-time update as user types
+    - [x] Show first N items + "... and X more"
+    - [x] Highlight naming conflicts if any exist
+- [x] Create `/locations/{id}/edit` page for editing locations
+- [x] Add delete confirmation modal (simple modal is OK)
 - [ ] Add location move/reorganize functionality
 
 ### Projects & BOM

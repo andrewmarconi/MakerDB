@@ -58,13 +58,13 @@ const handleImport = () => {
           <p class="text-sm font-medium">Map your CSV columns to MakerDB fields:</p>
           <div class="space-y-3">
             <UFormGroup label="Designators Column">
-              <USelect v-model="mappings.designators" :options="columns" />
+              <USelect v-model="mappings.designators" :items="columns" />
             </UFormGroup>
             <UFormGroup label="Quantity Column">
-              <USelect v-model="mappings.quantity" :options="columns" />
+              <USelect v-model="mappings.quantity" :items="columns" />
             </UFormGroup>
             <UFormGroup label="MPN Column">
-              <USelect v-model="mappings.mpn" :options="columns" />
+              <USelect v-model="mappings.mpn" :items="columns" />
             </UFormGroup>
           </div>
         </div>

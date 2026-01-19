@@ -3,6 +3,14 @@ from uuid import UUID
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
+
+def convert_m2m_to_list(value):
+    """Convert Django ManyRelatedManager to list for Pydantic serialization."""
+    if hasattr(value, 'all'):
+        return list(value.all())
+    return value
+
+
 class TimeStampedSchema(BaseModel):
     created_at: datetime
     updated_at: datetime

@@ -42,7 +42,7 @@ const filteredItems = computed(() => {
       <div class="flex flex-col md:flex-row gap-4 mb-4">
         <UInput v-model="search" icon="i-heroicons-magnifying-glass" placeholder="Search Name or MPN..."
           class="flex-1" />
-        <USelect v-model="selectedType" :options="partTypes" class="w-48" />
+        <USelect v-model="selectedType" :items="partTypes" class="w-48" />
       </div>
 
       <UTable :columns="columns" :rows="filteredItems">

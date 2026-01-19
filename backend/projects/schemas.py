@@ -1,7 +1,7 @@
-from typing import List, Optional
-from pydantic import BaseModel, Field
+from typing import List, Optional, Annotated
+from pydantic import BaseModel, Field, BeforeValidator
 from uuid import UUID
-from core.schemas import GlobalOpsSchema, AttachmentSchema
+from core.schemas import GlobalOpsSchema, AttachmentSchema, convert_m2m_to_list
 from parts.schemas import PartSchema
 
 class ProjectSchema(GlobalOpsSchema):
@@ -10,7 +10,7 @@ class ProjectSchema(GlobalOpsSchema):
     notes: Optional[str] = ""
     status: str
     revision: str
-    attachments: List[AttachmentSchema] = Field(default_factory=list)
+    attachments: Annotated[List[AttachmentSchema], BeforeValidator(convert_m2m_to_list)] = Field(default_factory=list)
 
 class BOMItemSchema(GlobalOpsSchema):
     project_id: UUID

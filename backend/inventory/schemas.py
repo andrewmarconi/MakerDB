@@ -1,9 +1,9 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field, ConfigDict
+from typing import List, Optional, Dict, Any, Annotated
+from pydantic import BaseModel, Field, ConfigDict, BeforeValidator
 from uuid import UUID
-from core.schemas import GlobalOpsSchema, AttachmentSchema
+from core.schemas import GlobalOpsSchema, AttachmentSchema, convert_m2m_to_list
 
 
 # --- Storage Schemas ---
@@ -29,7 +29,7 @@ class StorageUpdate(BaseModel):
 class StorageSchema(GlobalOpsSchema):
     name: str
     description: Optional[str] = ""
-    attachments: List[AttachmentSchema] = Field(default_factory=list)
+    attachments: Annotated[List[AttachmentSchema], BeforeValidator(convert_m2m_to_list)] = Field(default_factory=list)
 
 
 # --- Lot Schemas ---
@@ -63,7 +63,7 @@ class LotSchema(GlobalOpsSchema):
     description: Optional[str] = ""
     comments: Optional[str] = ""
     expiration_date: Optional[datetime] = None
-    attachments: List[AttachmentSchema] = Field(default_factory=list)
+    attachments: Annotated[List[AttachmentSchema], BeforeValidator(convert_m2m_to_list)] = Field(default_factory=list)
     order_id: Optional[UUID] = None
 
 

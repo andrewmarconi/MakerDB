@@ -67,7 +67,7 @@ const confirmReceipt = () => {
                 <div class="font-medium text-sm">{{ item.mpn }} ({{ item.receivedQty }} pcs)</div>
               </div>
               <div class="w-32">
-                <USelect v-model="item.location" :options="['b01-a4', 'b01-a5', 'b02-c1']" size="sm" />
+                <USelect v-model="item.location" :items="['b01-a4', 'b01-a5', 'b02-c1']" size="sm" />
               </div>
             </div>
           </div>

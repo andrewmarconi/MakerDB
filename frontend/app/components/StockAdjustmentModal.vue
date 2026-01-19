@@ -38,7 +38,7 @@ const save = () => {
 
         <div class="space-y-4 py-4">
           <UFormGroup label="Adjustment Type">
-            <USelect v-model="type" :options="types" />
+            <USelect v-model="type" :items="types" />
           </UFormGroup>
 
           <UFormGroup label="Quantity">
@@ -46,7 +46,7 @@ const save = () => {
           </UFormGroup>
 
           <UFormGroup label="Location">
-            <USelect v-model="location" :options="part.locations.map(l => l.name)" />
+            <USelect v-model="location" :items="part.locations.map(l => l.name)" />
           </UFormGroup>
 
           <UFormGroup label="Note (Optional)">
