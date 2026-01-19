@@ -1,0 +1,35 @@
+{
+  "name": "frontend",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:unit": "vitest --project unit",
+    "test:nuxt": "vitest --project nuxt"
+  },
+  "dependencies": {
+    "@nuxt/a11y": "^1.0.0-alpha.1",
+    "@nuxt/eslint": "^1.12.1",
+    "@nuxt/hints": "^1.0.0-alpha.5",
+    "@nuxt/image": "^2.0.0",
+    "@nuxt/test-utils": "^3.23.0",
+    "@nuxt/ui": "^4.3.0",
+    "@tailwindcss/vite": "^4.1.18",
+    "eslint": "^9.39.2",
+    "nuxt": "^4.2.2",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.9.3",
+    "vue": "^3.5.26",
+    "vue-router": "^4.6.4"
+  },
+  "devDependencies": {
+    "@vue/test-utils": "^2.4.6",
+    "vitest": "^3.2.4"
+  }
+}
