@@ -23,9 +23,9 @@ dev = [
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "makerdb.settings"
 python_files = ["test_*.py", "*_test.py"]
-pythonpath = "src"
+pythonpath = "backend"
 addopts = "--reuse-db"
 
 [tool.ruff]
 line-length = 120
-src = ["src"]
+src = ["backend"]
