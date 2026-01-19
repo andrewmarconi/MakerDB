@@ -17,13 +17,16 @@ class OrderAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ("Details", {
-            "fields": ("vendor", "number", "po_number", "invoice_number")
+            "fields": ("vendor", "number", "status", "invoice_number", "po_number")
         }),
         ("Dates", {
-            "fields": ("expected_arrival",)
+            "fields": ("expected_arrival", "created_at", "updated_at")
         }),
         ("Notes", {
-            "fields": ("notes", "comments")
+            "fields": ("comments", "notes", "tags", "custom_fields")
+        }),
+        ("Attachments", {
+            "fields": ("attachments",)
         }),
     )
 

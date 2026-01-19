@@ -25,6 +25,8 @@ class Lot(GlobalOpsBase):
     comments = models.TextField(blank=True)
     expiration_date = models.DateTimeField(null=True, blank=True)
     
+    attachments = models.ManyToManyField(Attachment, blank=True, related_name="lots")
+    
     
     # Link to Order is optional but helpful to trace origin.
     order = models.ForeignKey('procurement.Order', on_delete=models.SET_NULL, null=True, blank=True, related_name="lots")

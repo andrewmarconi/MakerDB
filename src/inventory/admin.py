@@ -10,6 +10,7 @@ class StorageAdmin(admin.ModelAdmin):
 class LotAdmin(admin.ModelAdmin):
     list_display = ('name', 'expiration_date', 'order')
     search_fields = ('name',)
+    filter_horizontal = ('attachments',) # Assuming ManyToMany interface
 
 @admin.register(Stock)
 class StockAdmin(admin.ModelAdmin):
