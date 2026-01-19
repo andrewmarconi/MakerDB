@@ -1,53 +1,53 @@
-<script setup>
-const links = [
-  {
-    label: 'Dashboard',
-    icon: 'i-heroicons-home',
-    to: '/'
-  },
-  {
-    label: 'Inventory',
-    icon: 'i-heroicons-circle-stack',
-    to: '/inventory'
-  },
-  {
-    label: 'Projects',
-    icon: 'i-heroicons-briefcase',
-    to: '/projects'
-  },
-  {
-    label: 'Purchasing',
-    icon: 'i-heroicons-shopping-cart',
-    to: '/purchasing'
-  }
-]
-</script>
-
 <template>
-  <div class="flex h-screen overflow-hidden">
+  <div class="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans">
     <!-- Sidebar -->
-    <aside class="w-64 border-r border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 overflow-y-auto">
-      <div class="p-4">
-        <h1 class="text-xl font-bold text-primary-600 dark:text-primary-400">MakerDB</h1>
-      </div>
-      <UNavigationMenu :links="links" orientation="vertical" class="px-2" />
-    </aside>
+    <AppSidebar />
 
     <!-- Main Content -->
-    <main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-white dark:bg-black">
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
       <!-- Header -->
-      <header class="h-16 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-6 shrink-0">
-        <h2 class="text-lg font-semibold">Dashboard</h2>
-        <div class="flex items-center gap-4">
-          <UColorModeButton />
-          <UAvatar src="https://avatars.githubusercontent.com/u/1024025?v=4" alt="User" />
-        </div>
-      </header>
+      <AppHeader />
 
       <!-- Page Content -->
-      <div class="flex-1 p-6 overflow-y-auto">
-        <slot />
-      </div>
-    </main>
+      <main class="flex-1 overflow-y-auto p-4 md:p-8">
+        <div class="max-w-7xl mx-auto h-full">
+          <slot />
+        </div>
+      </main>
+    </div>
   </div>
 </template>
+
+<style>
+/* Custom transitions for dark mode */
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Custom scrollbar for a premium feel */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #1e293b;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+</style>

@@ -2,17 +2,19 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2025-07-15',
+  compatibilityDate: '2026-01-19',
+  srcDir: 'app',
   devtools: { enabled: true },
+  debug: true,
 
   future: {
     compatibilityVersion: 4
   },
 
   modules: [
-    '@nuxt/a11y',
+    // '@nuxt/a11y',
     '@nuxt/eslint',
-    '@nuxt/hints',
+    // '@nuxt/hints', // Temporarily disabled - causing hydration reporting errors
     '@nuxt/image',
     '@nuxt/ui',
     '@nuxt/test-utils'
@@ -27,11 +29,9 @@ export default defineNuxtConfig({
   },
 
   nitro: {
-    devProxy: {
-      '/api': {
-        target: 'http://localhost:8000/api',
-        changeOrigin: true
-      }
+    routeRules: {
+      '/db/**': { proxy: 'http://localhost:8000/api/**' }
     }
   }
+
 })

@@ -84,6 +84,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "makerdb.wsgi.application"
+ASGI_APPLICATION = "makerdb.asgi.application"
 
 
 # Database
