@@ -1,0 +1,31 @@
+[project]
+name = "makerbom"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "django==6.0.1",
+    "django-environ>=0.12.0",
+    "django-jazzmin>=3.0.1",
+    "fastapi>=0.128.0",
+    "psycopg[binary]>=3.3.2",
+    "uvicorn[standard]>=0.40.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "pytest-django>=4.11.1",
+    "ruff>=0.14.13",
+]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "makerdb.settings"
+python_files = ["test_*.py", "*_test.py"]
+pythonpath = "src"
+addopts = "--reuse-db"
+
+[tool.ruff]
+line-length = 120
+src = ["src"]
