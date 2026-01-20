@@ -11,7 +11,8 @@
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:unit": "vitest --project unit",
-    "test:nuxt": "vitest --project nuxt"
+    "test:nuxt": "vitest --project nuxt",
+    "dev:all": "concurrently \"cd /Users/andrew/Develop/MakerDB && .venv/bin/python -m uvicorn makerdb.asgi:application --app-dir backend\" \"npm run dev\""
   },
   "dependencies": {
     "@nuxt/a11y": "^1.0.0-alpha.1",
@@ -31,6 +32,7 @@
   "devDependencies": {
     "@iconify-json/heroicons": "^1.2.3",
     "@vue/test-utils": "^2.4.6",
+    "concurrently": "^9.1.2",
     "vitest": "^3.2.4"
   }
 }

@@ -16,6 +16,5 @@ application = FastAPI(openapi_url=None, docs_url=None, redoc_url=None)
 
 application.mount("/api", fastapi_app)
 
-from django.contrib import admin
-
-application.mount("/cp", admin.site.urls)
+admin_asgi = get_asgi_application()
+application.mount("/cp", admin_asgi)
