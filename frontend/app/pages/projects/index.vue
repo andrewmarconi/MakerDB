@@ -54,7 +54,7 @@ const loading = computed(() => projectsPending.value)
       :loading="loading"
       :on-row-click="(project) => ({ path: `/projects/${project.id}` })"
     />
-    
+  
     <UCard v-else>
       <div class="flex items-center justify-center py-12">
         <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-primary-500" />
