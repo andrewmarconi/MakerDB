@@ -1,9 +1,10 @@
 <template>
   <UDashboardGroup>
     <UDashboardSidebar collapsible>
-      <template #header>
-        <NuxtLink to="/" class="flex items-center justify-center px-4 py-3 border-b border-gray-200 dark:border-gray-800">
-          <img src="/makerdb-logo-wide.png" alt="MakerDB" class="h-7 max-h-[48px] w-auto object-contain" />
+      <template #header="{ collapsed }">
+        <NuxtLink to="/" class="flex items-center justify-center w-full border-b border-gray-200 dark:border-gray-800" :class="collapsed ? 'h-16 py-2' : 'h-[--ui-header-height] py-3'">
+          <img v-if="collapsed" src="/makerdb-logo-small.png" alt="MakerDB" class="h-full w-auto object-contain" />
+          <img v-else src="/makerdb-logo-wide.png" alt="MakerDB" class="h-7 max-h-[48px] w-auto object-contain" />
         </NuxtLink>
       </template>
 
@@ -46,21 +47,8 @@ const links = [
   },
   {
     label: 'Inventory',
-    icon: 'i-heroicons-circle-stack',
-    children: [
-      {
-        label: 'All Parts',
-        to: '/inventory'
-      },
-      {
-        label: 'Storage Locations',
-        to: '/locations'
-      },
-      {
-        label: 'Companies',
-        to: '/companies'
-      }
-    ]
+    icon: 'i-heroicons-cube',
+    to: '/inventory'
   },
   {
     label: 'Projects',
@@ -68,9 +56,19 @@ const links = [
     to: '/projects'
   },
   {
+    label: 'Storage',
+    icon: 'i-heroicons-map-pin',
+    to: '/locations'
+  },
+  {
     label: 'Purchasing',
     icon: 'i-heroicons-shopping-cart',
     to: '/purchasing'
+  },
+    {
+    label: 'Vendors',
+    icon: 'i-heroicons-building-office-2',
+    to: '/companies'
   }
 ]
 
