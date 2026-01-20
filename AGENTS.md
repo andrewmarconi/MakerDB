@@ -19,7 +19,7 @@ uv run python backend/manage.py migrate
 # Start development server (ASGI - serves both Django and FastAPI)
 uv run uvicorn makerdb.asgi:application --reload --app-dir backend
 
-# Run all backend tests
+# Run all backend tests (uses --reuse-db by default for speed)
 uv run pytest
 
 # Run a single test file
@@ -27,6 +27,9 @@ uv run pytest backend/tests/test_domain_phase2.py
 
 # Run a single test
 uv run pytest backend/tests/test_domain_phase2.py::test_project_creation
+
+# Recreate test database fresh
+uv run pytest --create-db
 
 # Lint
 uv run ruff check backend
@@ -45,6 +48,9 @@ npm install
 
 # Start dev server
 npm run dev
+
+# Run both backend and frontend together
+npm run dev:all
 
 # Run all tests
 npm test
@@ -82,10 +88,19 @@ npm run test:watch
 
 **Error Handling**:
 - Use specific exceptions (not bare `except:`)
-- Let exceptions propagate in FastAPI routes; rely on global exception handlers
+- Use `HTTPException` in FastAPI routes with appropriate status codes (404 for not found, 400 for bad input)
 - Validate inputs early with pydantic models in FastAPI endpoints
+- Let exceptions propagate in FastAPI routes; rely on global exception handlers
 
-**Async**: Prefer async ORM calls (`alib`) in FastAPI routes for database operations.
+**Async Pattern**: FastAPI routes use `sync_to_async` from `asgiref.sync` to wrap Django ORM calls:
+```python
+@router.get("/items")
+async def list_items():
+    @sync_to_async
+    def _list():
+        return list(Item.objects.all())
+    return await _list()
+```
 
 **Django Models**:
 - Abstract base classes: `TimeStampedModel`, `GlobalOpsBase`
@@ -94,25 +109,37 @@ npm run test:watch
 - Use `related_name` on ForeignKey fields
 - Always define `__str__` methods
 
-**Testing**: Use `pytest` with `pytest-django`. Mark tests with `@pytest.mark.django_db`. Place tests in `backend/tests/`.
+**Pydantic Schemas**:
+- Use `BaseModel` with `ConfigDict(from_attributes=True)` for ORM integration
+- Use `Field(default_factory=list)` for mutable default list/dict fields
+- Separate read (`CompanySchema`) and write (`CompanyCreate`) schemas
+- Inherit from common bases like `GlobalOpsSchema`
+
+**FastAPI Routing**:
+- Each Django app has `router.py` with `APIRouter(prefix="/app", tags=["App"])`
+- Register routers in `backend/makerdb/api.py`
+- Use appropriate HTTP methods and status codes
+- Response models define output structure
+
+**Testing**: Use `pytest` with `pytest-django`. Mark tests with `@pytest.mark.django_db`. Place tests in `backend/tests/`. Tests reuse database by default for speed.
 
 ### Vue/TypeScript (Frontend)
 
 **Composition API**: Use `<script setup>` with Composition API.
 
-**TypeScript**: Enable strict mode. Define interfaces for complex props.
+**TypeScript**: Enable strict mode. Define interfaces for complex props. Use `PropType` for array/object props.
 
 **Component Structure**:
 - Imports at top (Nuxt auto-imports: `useRoute`, `useAsyncData`, etc.)
-- `definePageMeta()` for page metadata
-- Component props with TypeScript types
-- Use Nuxt UI components (`UCard`, `UButton`, `UIcon`, etc.)
+- `defineProps()` and `defineEmits()` for component interface
+- Composables with `ref`, `computed`, `watch` for reactivity
+- Use Nuxt UI components (`UCard`, `UButton`, `UIcon`, `UBadge`, etc.)
 
 **Naming**: PascalCase for components (`BOMTable.vue`), camelCase for variables/functions.
 
-**Styling**: Tailwind CSS classes. Use Nuxt UI color/size props.
+**Styling**: Tailwind CSS classes. Use Nuxt UI color/size props over inline styles.
 
-**Tests**: Vitest with two projects: `unit` (node environment) and `nuxt` (happy-dom). Place tests in `frontend/test/`.
+**Tests**: Vitest with two projects: `unit` (node environment) and `nuxt` (happy-dom). Place tests in `frontend/test/unit/` or `frontend/test/nuxt/`.
 
 ### General
 
@@ -120,8 +147,10 @@ npm run test:watch
 
 **Configuration**: Environment variables via `django-environ` in `.env` file at project root.
 
-**Linting**: Ruff for Python, ESLint for JavaScript/TypeScript.
+**Linting**: Ruff for Python, ESLint for JavaScript/TypeScript (configured via @nuxt/eslint).
 
 **Dependencies**: Add to `pyproject.toml` or `package.json` directly (no separate lockfiles).
 
 **Git**: Create meaningful commit messages. Don't commit `.env` files or generated files.
+
+**Django Apps**: Each app follows pattern: `models.py` (ORM), `schemas.py` (Pydantic), `router.py` (FastAPI routes).
