@@ -22,7 +22,7 @@ const columns: ColumnDef<Project>[] = [
 
 const cardFields = ['status', 'revision', 'updated_at']
 
-const { data: projects, pending: projectsError } = await useAsyncData('projects', () =>
+const { data: projects, pending } = await useAsyncData('projects', () =>
   $fetch<Project[]>('/db/projects/')
 )
 
@@ -43,25 +43,14 @@ const loading = computed(() => projectsPending.value)
       </div>
     </div>
 
-    <DataTable
-      v-if="projects"
-      :data="projectData"
-      :columns="columns"
-      :card-fields="cardFields"
-      searchable
-      clickable-column="name"
-      default-sort="{ id: 'updated_at', desc: true }"
-      :loading="loading"
-      :on-row-click="(project) => ({ path: `/projects/${project.id}` })"
-    />
-  
+    <DataTable v-if="projects" :data="projectData" :columns="columns" :card-fields="cardFields" searchable
+      clickable-column="name" default-sort="{ id: 'updated_at', desc: true }" :loading="loading"
+      :on-row-click="(project) => ({ path: `/projects/${project.id}` })" />
     <UCard v-else>
       <div class="flex items-center justify-center py-12">
         <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-primary-500" />
         <span class="ml-3">Loading projects...</span>
       </div>
     </UCard>
-  </div>
-</template>
   </div>
 </template>
