@@ -18,7 +18,8 @@ docker compose up -d
 cd backend
 uv sync
 uv run python manage.py migrate # If needed
-uv run uvicorn makerdb.asgi:application --reload --port 8000
+cd /Users/andrew/Develop/MakerDB && .venv/bin/python -m uvicorn makerdb.asgi:application --app-dir backend
+
 ```
 
 ### Frontend Services

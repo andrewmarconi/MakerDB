@@ -1,11 +1,17 @@
 from typing import List
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from uuid import UUID
 from inventory.models import Storage, Lot, Stock
 from inventory.schemas import (
-    StorageSchema, StorageCreate, StorageUpdate,
-    LotSchema, LotCreate, LotUpdate,
-    StockSchema, StockCreate, StockUpdate,
+    StorageSchema,
+    StorageCreate,
+    StorageUpdate,
+    LotSchema,
+    LotCreate,
+    LotUpdate,
+    StockSchema,
+    StockCreate,
+    StockUpdate,
 )
 from parts.models import Part
 from procurement.models import Order
@@ -16,14 +22,21 @@ router = APIRouter(prefix="/inventory", tags=["Inventory"])
 
 # --- Storage Location Endpoints ---
 
+
 def _get_storage_queryset():
-    return Storage.objects.prefetch_related('attachments')
+    return Storage.objects.prefetch_related("attachments")
 
 
 @router.get("/locations", response_model=List[StorageSchema])
-async def list_locations():
-    locations = await sync_to_async(list)(_get_storage_queryset().all())
+async def list_locations(skip: int = Query(0, ge=0), limit: int = Query(100, ge=1, le=1000)):
+    locations = await sync_to_async(list)(_get_storage_queryset().all()[skip : skip + limit])
     return locations
+
+
+@router.get("/locations/count", response_model=dict)
+async def count_locations():
+    count = await sync_to_async(_get_storage_queryset().count)()
+    return {"count": count}
 
 
 @router.get("/locations/{location_id}", response_model=StorageSchema)
@@ -38,6 +51,7 @@ async def get_location(location_id: UUID):
 @router.post("/locations", response_model=StorageSchema, status_code=201)
 async def create_location(data: StorageCreate):
     """Create a new storage location."""
+
     @sync_to_async
     def _create():
         location = Storage.objects.create(**data.model_dump())
@@ -50,6 +64,7 @@ async def create_location(data: StorageCreate):
 @router.put("/locations/{location_id}", response_model=StorageSchema)
 async def update_location(location_id: UUID, data: StorageUpdate):
     """Update a storage location."""
+
     @sync_to_async
     def _update():
         try:
@@ -75,6 +90,7 @@ async def update_location(location_id: UUID, data: StorageUpdate):
 @router.delete("/locations/{location_id}", status_code=204)
 async def delete_location(location_id: UUID):
     """Delete a storage location."""
+
     @sync_to_async
     def _delete():
         try:
@@ -98,14 +114,21 @@ async def delete_location(location_id: UUID):
 
 # --- Stock Endpoints ---
 
+
 def _get_stock_queryset():
-    return Stock.objects.select_related('part', 'storage', 'lot')
+    return Stock.objects.select_related("part", "storage", "lot")
 
 
 @router.get("/stock", response_model=List[StockSchema])
-async def list_stock():
-    stock = await sync_to_async(list)(_get_stock_queryset().all())
+async def list_stock(skip: int = Query(0, ge=0), limit: int = Query(100, ge=1, le=1000)):
+    stock = await sync_to_async(list)(_get_stock_queryset().all()[skip : skip + limit])
     return stock
+
+
+@router.get("/stock/count", response_model=dict)
+async def count_stock():
+    count = await sync_to_async(_get_stock_queryset().count)()
+    return {"count": count}
 
 
 @router.get("/stock/{stock_id}", response_model=StockSchema)
@@ -120,6 +143,7 @@ async def get_stock(stock_id: UUID):
 @router.post("/stock", response_model=StockSchema, status_code=201)
 async def create_stock(data: StockCreate):
     """Create a new stock entry."""
+
     @sync_to_async
     def _create():
         # Validate part exists
@@ -142,13 +166,8 @@ async def create_stock(data: StockCreate):
             except Lot.DoesNotExist:
                 raise ValueError("Lot not found", 400)
 
-        stock_data = data.model_dump(exclude={'part_id', 'storage_id', 'lot_id'})
-        stock = Stock.objects.create(
-            part=part,
-            storage=storage,
-            lot=lot,
-            **stock_data
-        )
+        stock_data = data.model_dump(exclude={"part_id", "storage_id", "lot_id"})
+        stock = Stock.objects.create(part=part, storage=storage, lot=lot, **stock_data)
         return _get_stock_queryset().get(id=stock.id)
 
     try:
@@ -162,6 +181,7 @@ async def create_stock(data: StockCreate):
 @router.put("/stock/{stock_id}", response_model=StockSchema)
 async def update_stock(stock_id: UUID, data: StockUpdate):
     """Update a stock entry (adjust quantity, change status, etc.)."""
+
     @sync_to_async
     def _update():
         try:
@@ -172,15 +192,15 @@ async def update_stock(stock_id: UUID, data: StockUpdate):
         update_data = data.model_dump(exclude_unset=True)
 
         # Handle foreign key fields
-        if 'storage_id' in update_data:
-            storage_id = update_data.pop('storage_id')
+        if "storage_id" in update_data:
+            storage_id = update_data.pop("storage_id")
             try:
                 stock.storage = Storage.objects.get(id=storage_id)
             except Storage.DoesNotExist:
                 raise ValueError("Storage location not found", 400)
 
-        if 'lot_id' in update_data:
-            lot_id = update_data.pop('lot_id')
+        if "lot_id" in update_data:
+            lot_id = update_data.pop("lot_id")
             if lot_id is None:
                 stock.lot = None
             else:
@@ -207,6 +227,7 @@ async def update_stock(stock_id: UUID, data: StockUpdate):
 @router.delete("/stock/{stock_id}", status_code=204)
 async def delete_stock(stock_id: UUID):
     """Delete a stock entry."""
+
     @sync_to_async
     def _delete():
         try:
@@ -223,14 +244,21 @@ async def delete_stock(stock_id: UUID):
 
 # --- Lot Endpoints ---
 
+
 def _get_lot_queryset():
-    return Lot.objects.prefetch_related('attachments').select_related('order')
+    return Lot.objects.prefetch_related("attachments").select_related("order")
 
 
 @router.get("/lots", response_model=List[LotSchema])
-async def list_lots():
-    lots = await sync_to_async(list)(_get_lot_queryset().all())
+async def list_lots(skip: int = Query(0, ge=0), limit: int = Query(100, ge=1, le=1000)):
+    lots = await sync_to_async(list)(_get_lot_queryset().all()[skip : skip + limit])
     return lots
+
+
+@router.get("/lots/count", response_model=dict)
+async def count_lots():
+    count = await sync_to_async(_get_lot_queryset().count)()
+    return {"count": count}
 
 
 @router.get("/lots/{lot_id}", response_model=LotSchema)
@@ -245,9 +273,10 @@ async def get_lot(lot_id: UUID):
 @router.post("/lots", response_model=LotSchema, status_code=201)
 async def create_lot(data: LotCreate):
     """Create a new lot/batch."""
+
     @sync_to_async
     def _create():
-        lot_data = data.model_dump(exclude={'order_id'})
+        lot_data = data.model_dump(exclude={"order_id"})
 
         # Validate order if provided
         order = None
@@ -271,6 +300,7 @@ async def create_lot(data: LotCreate):
 @router.put("/lots/{lot_id}", response_model=LotSchema)
 async def update_lot(lot_id: UUID, data: LotUpdate):
     """Update a lot/batch."""
+
     @sync_to_async
     def _update():
         try:
@@ -281,8 +311,8 @@ async def update_lot(lot_id: UUID, data: LotUpdate):
         update_data = data.model_dump(exclude_unset=True)
 
         # Handle order foreign key
-        if 'order_id' in update_data:
-            order_id = update_data.pop('order_id')
+        if "order_id" in update_data:
+            order_id = update_data.pop("order_id")
             if order_id is None:
                 lot.order = None
             else:

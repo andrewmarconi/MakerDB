@@ -16,6 +16,10 @@ const links = [
       {
         label: 'Storage Locations',
         to: '/locations'
+      },
+      {
+        label: 'Companies',
+        to: '/companies'
       }
     ]
   },

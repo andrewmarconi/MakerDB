@@ -20,19 +20,17 @@ import os
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-env = environ.Env(
-    DEBUG=(bool, False)
-)
-environ.Env.read_env(os.path.join(PROJECT_ROOT, '.env'))
+env = environ.Env(DEBUG=(bool, False))
+environ.Env.read_env(os.path.join(PROJECT_ROOT, ".env"))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('SECRET_KEY')
+SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env('DEBUG')
+DEBUG = env("DEBUG")
 
 ALLOWED_HOSTS = []
 
@@ -47,7 +45,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    
     # Local Apps
     "core",
     "parts",
@@ -58,6 +55,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -71,7 +69,7 @@ ROOT_URLCONF = "makerdb.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -134,6 +132,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
@@ -145,44 +144,29 @@ JAZZMIN_SETTINGS = {
     "welcome_sign": "Welcome to MakerDB",
     "copyright": "MakerDB",
     "search_model": "parts.Part",
-    
     # UI Customizer
     "changeform_format": "horizontal_tabs",
     "changeform_format_overrides": {
         "auth.user": "collapsible",
         "auth.group": "vertical_tabs",
     },
-    
     # Icons (FontAwesome 5)
     "icons": {
         "auth": "fas fa-users-cog",
         "auth.user": "fas fa-user",
         "auth.Group": "fas fa-users",
-        
         "core.Company": "fas fa-building",
         "core.Attachment": "fas fa-paperclip",
-        
         "parts.Part": "fas fa-microchip",
-        
         "inventory.Storage": "fas fa-boxes",
         "inventory.Lot": "fas fa-pallet",
         "inventory.Stock": "fas fa-cubes",
-        
         "procurement.Order": "fas fa-shopping-cart",
         "procurement.Offer": "fas fa-tags",
-        
         "projects.Project": "fas fa-clipboard-list",
     },
-    
     # Menu Ordering
-    "order_with_respect_to": [
-        "projects", 
-        "parts", 
-        "inventory", 
-        "procurement", 
-        "core", 
-        "auth"
-    ],
+    "order_with_respect_to": ["projects", "parts", "inventory", "procurement", "core", "auth"],
 }
 
 # Default primary key field type

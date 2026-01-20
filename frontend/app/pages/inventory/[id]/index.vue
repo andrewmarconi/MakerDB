@@ -36,10 +36,10 @@ const selectedTab = ref(0)
           </div>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <LabelPreview :label="part.name" :sublabel="part.mpn" :id="`PART-${part.id}`" />
-        <UButton label="Edit Part" icon="i-heroicons-pencil" variant="outline" />
-        <StockAdjustmentModal :part="part" />
+        <div class="flex items-center gap-2">
+          <LabelPreview :label="part.name" :sublabel="part.mpn" :id="`PART-${part.id}`" />
+          <UButton label="Edit Part" icon="i-heroicons-pencil" variant="outline" :to="`/inventory/${part.id}/edit`" />
+          <StockAdjustmentModal :part="part" @saved="refresh" />
       </div>
     </div>
 

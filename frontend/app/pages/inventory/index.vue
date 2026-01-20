@@ -1,28 +1,132 @@
-<script setup>
-const columns = [
-  { id: 'name', key: 'name', label: 'Name', sortable: true },
-  { id: 'mpn', key: 'mpn', label: 'MPN', sortable: true },
-  { id: 'type', key: 'type', label: 'Type' },
-  { id: 'stock', key: 'stock', label: 'Stock', sortable: true },
-  { id: 'price', key: 'price', label: 'Price', sortable: true },
-  { id: 'actions', key: 'actions', label: '' }
+<script setup lang="ts">
+import { h, resolveComponent } from 'vue'
+import type { TableColumn } from '@nuxt/ui'
+
+interface Part {
+  id: string
+  name: string
+  mpn: string
+  part_type: string
+  total_stock: number
+  manufacturer?: { name: string }
+}
+
+const UBadge = resolveComponent('UBadge')
+const UButton = resolveComponent('UButton')
+const UDropdownMenu = resolveComponent('UDropdownMenu')
+
+const columns: TableColumn<Part>[] = [
+  {
+    accessorKey: 'name',
+    header: 'Name',
+    enableSorting: true,
+    cell: ({ row }) => h('div', { class: 'font-medium' }, row.getValue('name'))
+  },
+  { accessorKey: 'mpn', header: 'MPN', enableSorting: true },
+  {
+    accessorKey: 'part_type',
+    header: 'Type',
+    enableSorting: false,
+    cell: ({ row }) => {
+      const type = row.getValue('part_type') as string
+      const colors: Record<string, string> = {
+        'local': 'gray',
+        'linked': 'blue',
+        'meta': 'purple',
+        'sub-assembly': 'green'
+      }
+      const labels: Record<string, string> = {
+        'local': 'Local',
+        'linked': 'Linked',
+        'meta': 'Meta-Part',
+        'sub-assembly': 'Sub-Assembly'
+      }
+      return h(UBadge, { color: colors[type] || 'gray', variant: 'subtle', size: 'sm' }, () => labels[type] || type || 'Unknown')
+    }
+  },
+  {
+    accessorKey: 'total_stock',
+    header: 'Stock',
+    enableSorting: true,
+    cell: ({ row }) => h('div', { class: 'font-mono' }, row.getValue('total_stock'))
+  },
+  {
+    id: 'actions',
+    header: '',
+    enableSorting: false,
+    cell: ({ row }) => {
+      const items = [
+        { label: 'View Stock', icon: 'i-heroicons-circle-stack' },
+        { label: 'Print Label', icon: 'i-heroicons-printer' }
+      ]
+      return h('div', { class: 'flex justify-end gap-1' }, [
+        h(UButton, {
+          variant: 'ghost',
+          color: 'gray',
+          icon: 'i-heroicons-pencil-square',
+          to: `/inventory/${row.original.id}`
+        }),
+        h(UDropdownMenu, { items }, () => {
+          return h(UButton, { variant: 'ghost', color: 'gray', icon: 'i-heroicons-ellipsis-horizontal' })
+        })
+      ])
+    }
+  }
 ]
 
-const { data: parts, refresh } = await useApiFetch('/parts/')
-
+const ITEMS_PER_PAGE = 25
+const page = ref(1)
+const total = ref(0)
+const parts = ref<Part[]>([])
+const pending = ref(false)
 const search = ref('')
 const selectedType = ref('All')
 const partTypes = ['All', 'Linked', 'Local', 'Meta', 'Sub-assembly']
+const sorting = ref<{ id: string; desc: boolean }[]>([])
 
-const filteredItems = computed(() => {
+async function fetchParts() {
+  pending.value = true
+  try {
+    const skip = (page.value - 1) * ITEMS_PER_PAGE
+    let url = `/db/parts/?skip=${skip}&limit=${ITEMS_PER_PAGE}`
+    
+    if (sorting.value.length > 0) {
+      const sort = sorting.value[0]
+      const order = sort.desc ? '-' : ''
+      url += `&ordering=${order}${sort.id}`
+    }
+
+    const [data, countData] = await Promise.all([
+      $fetch<Part[]>(url),
+      $fetch<{ count: number }>('/db/parts/count')
+    ])
+    parts.value = Array.isArray(data) ? data : []
+    total.value = countData?.count || 0
+  } catch (e) {
+    console.error('Failed to fetch parts:', e)
+    parts.value = []
+    total.value = 0
+  } finally {
+    pending.value = false
+  }
+}
+
+watch([page, search, selectedType, sorting], () => {
+  page.value = 1
+  fetchParts()
+}, { deep: true })
+
+const filteredItems = computed<Part[]>(() => {
   if (!parts.value) return []
-  return parts.value.filter(item => {
+  return (parts.value as Part[]).filter((item: Part) => {
     const matchesSearch = item.name.toLowerCase().includes(search.value.toLowerCase()) ||
       item.mpn.toLowerCase().includes(search.value.toLowerCase())
     const matchesType = selectedType.value === 'All' || item.part_type === selectedType.value.toLowerCase()
     return matchesSearch && matchesType
   })
 })
+
+onMounted(fetchParts)
 </script>
 
 <template>
@@ -33,7 +137,7 @@ const filteredItems = computed(() => {
         <p class="text-gray-500 dark:text-gray-400">Manage your parts and track stock levels.</p>
       </div>
       <div class="flex items-center gap-2">
-        <UButton icon="i-heroicons-plus" label="Add Part" color="primary" />
+        <UButton icon="i-heroicons-plus" label="Add Part" color="primary" to="/inventory/new" />
         <UButton icon="i-heroicons-arrow-up-tray" label="Import" variant="ghost" color="gray" />
       </div>
     </div>
@@ -45,25 +149,25 @@ const filteredItems = computed(() => {
         <USelect v-model="selectedType" :items="partTypes" class="w-48" />
       </div>
 
-      <UTable :columns="columns" :rows="filteredItems">
-        <template #type-data="{ row }">
-          <StatusBadge :status="row.type" />
-        </template>
+      <div v-if="pending" class="flex justify-center py-12">
+        <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-gray-400" />
+      </div>
 
-        <template #stock-data="{ row }">
-          <div class="font-mono">{{ row.stock }}</div>
-        </template>
+      <div v-else-if="!parts || parts.length === 0" class="text-center py-12 text-gray-500">
+        <UIcon name="i-heroicons-circle-stack" class="w-12 h-12 mx-auto mb-4 opacity-50" />
+        <p>No parts found.</p>
+      </div>
 
-        <template #actions-data="{ row }">
-          <div class="flex justify-end">
-            <UButton variant="ghost" color="gray" icon="i-heroicons-pencil-square" :to="`/inventory/${row.id}`" />
-            <UDropdownMenu
-              :items="[[{ label: 'View Stock', icon: 'i-heroicons-circle-stack' }, { label: 'Print Label', icon: 'i-heroicons-printer' }]]">
-              <UButton variant="ghost" color="gray" icon="i-heroicons-ellipsis-horizontal" />
-            </UDropdownMenu>
-          </div>
-        </template>
-      </UTable>
+      <UTable v-else :data="filteredItems" :columns="columns" v-model:sorting="sorting" />
+
+      <div v-if="total > ITEMS_PER_PAGE" class="flex justify-center mt-4">
+        <UPagination
+          v-model:page="page"
+          :total="total"
+          :items-per-page="ITEMS_PER_PAGE"
+          :show-controls="true"
+        />
+      </div>
     </UCard>
   </div>
 </template>

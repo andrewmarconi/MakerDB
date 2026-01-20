@@ -1,0 +1,50 @@
+{% load admin_list jazzmin i18n %}
+{% get_jazzmin_ui_tweaks as jazzmin_ui %}
+
+<div class="col-5">
+    <div class="dataTables_info" role="status" aria-live="polite">
+        {{ cl.result_count }}
+        {% if cl.result_count == 1 %}
+            {{ cl.opts.verbose_name }}
+        {% else %}
+            {{ cl.opts.verbose_name_plural }}
+        {% endif %}
+
+        {% if show_all_url %}&nbsp;&nbsp;
+            <a href="{{ show_all_url }}" class="btn btn-sm {{ jazzmin_ui.button_classes.secondary }}">{% trans 'Show all' %}</a>
+        {% endif %}
+        {% if cl.formset and cl.result_count %}
+            <input type="submit" name="_save" class="btn btn-sm {{ jazzmin_ui.button_classes.success }}" value="{% trans 'Save' %}">
+        {% endif %}
+    </div>
+</div>
+
+<div class="col-7">
+    <ul class="pagination pagination-sm m-0 float-right">
+        {% if pagination_required %}
+            {% for i in page_range %}
+                {% if forloop.first %}
+                    <li class="page-item{% if cl.page_num == 0 %} active{% endif %}">
+                        <a class="page-link" href="{{ cl.get_query_string }}" tabindex="0">«</a>
+                    </li>
+                {% elif forloop.last %}
+                    <li class="page-item{% if cl.page_num == cl.paginator.num_pages|add:1 %} active{% endif %}">
+                        <a class="page-link" href="{{ cl.get_query_string }}" tabindex="0">»</a>
+                    </li>
+                {% elif i == cl.page_num %}
+                    <li class="page-item active">
+                        <a class="page-link" href="javascript:void(0);" tabindex="0">{{ i }}</a>
+                    </li>
+                {% elif i|stringformat:"s" == "..." or i|stringformat:"s" == "…" %}
+                    <li class="page-item">
+                        <a class="page-link" href="javascript:void(0);" tabindex="0">…</a>
+                    </li>
+                {% else %}
+                    <li class="page-item">
+                        <a class="page-link{% if forloop.last %} end{% endif %}" href="{{ cl.get_query_string }}" tabindex="0">{{ i }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    </ul>
+</div>

@@ -29,14 +29,14 @@
 - [x] PUT `/api/inventory/lots/{id}` - Update lot details
 
 ### Projects & BOM
-- [ ] POST `/api/projects/` - Create project
-- [ ] PUT `/api/projects/{id}` - Update project
-- [ ] DELETE `/api/projects/{id}` - Delete project
-- [ ] POST `/api/projects/{id}/bom` - Add BOM item
-- [ ] PUT `/api/projects/{id}/bom/{item_id}` - Update BOM item
-- [ ] DELETE `/api/projects/{id}/bom/{item_id}` - Remove BOM item
-- [ ] POST `/api/projects/{id}/bom/import` - Import BOM from CSV
-- [ ] POST `/api/projects/{id}/bom/match` - Auto-match BOM items to parts
+- [x] POST `/api/projects/` - Create project
+- [x] PUT `/api/projects/{id}` - Update project
+- [x] DELETE `/api/projects/{id}` - Delete project
+- [x] POST `/api/projects/{id}/bom` - Add BOM item
+- [x] PUT `/api/projects/{id}/bom/{item_id}` - Update BOM item
+- [x] DELETE `/api/projects/{id}/bom/{item_id}` - Remove BOM item
+- [x] POST `/api/projects/{id}/bom/import` - Import BOM from CSV
+- [x] POST `/api/projects/{id}/bom/match` - Auto-match BOM items to parts
 
 ### Procurement
 - [ ] POST `/api/procurement/orders` - Create purchase order
@@ -57,43 +57,43 @@
 > - This makes forms more digestible and reduces cognitive load.
 
 ### Parts & Inventory
-- [ ] Create `/inventory/new` page for adding parts
-  - [ ] **Tab 1: Basic Info**
-    - [ ] Part type selection (Linked, Local, Meta, Sub-assembly)
-    - [ ] Name/title
-    - [ ] MPN (for Linked parts)
-    - [ ] Manufacturer (for Linked parts)
-    - [ ] Description
-    - [ ] Category/tags
-  - [ ] **Tab 2: Specifications**
-    - [ ] Custom fields (key-value pairs)
-    - [ ] Parametric data (resistance, capacitance, etc.)
-    - [ ] Package/footprint
-    - [ ] Datasheet URL
-  - [ ] **Tab 3: Initial Stock** (optional)
-    - [ ] Quantity
-    - [ ] Location
-    - [ ] Lot information
-    - [ ] Purchase price
-  - [ ] **Tab 4: Attachments** (optional)
-    - [ ] File upload area
-    - [ ] Image gallery
-- [ ] Create `/inventory/{id}/edit` page for editing parts
-  - [ ] Same tabbed structure as creation
-  - [ ] Pre-populate with existing data
-- [ ] Implement StockAdjustmentModal functionality (simple modal is OK)
-  - [ ] Connect to POST `/api/inventory/stock`
-  - [ ] Support Add/Set/Remove operations
-  - [ ] Multi-location stock updates
-  - [ ] Lot/batch assignment
-- [ ] Implement AttachmentManager functionality (inline component)
-  - [ ] File upload with drag-and-drop
-  - [ ] Preview for images/PDFs
-  - [ ] Delete attachments
-- [ ] Implement TagManager functionality (inline component)
-  - [ ] Add new tags
-  - [ ] Remove tags
-  - [ ] Tag autocomplete
+- [x] Create `/inventory/new` page for adding parts
+  - [x] **Tab 1: Basic Info**
+    - [x] Part type selection (Linked, Local, Meta, Sub-assembly)
+    - [x] Name/title
+    - [x] MPN (for Linked parts)
+    - [x] Manufacturer (for Linked parts)
+    - [x] Description
+    - [x] Category/tags
+  - [x] **Tab 2: Specifications**
+    - [x] Custom fields (key-value pairs)
+    - [x] Parametric data (resistance, capacitance, etc.)
+    - [x] Package/footprint
+    - [x] Datasheet URL
+  - [x] **Tab 3: Initial Stock** (optional)
+    - [x] Quantity
+    - [x] Location
+    - [x] Lot information
+    - [x] Purchase price
+  - [x] **Tab 4: Attachments** (optional)
+    - [x] File upload area
+    - [x] Image gallery
+- [x] Create `/inventory/{id}/edit` page for editing parts
+  - [x] Same tabbed structure as creation
+  - [x] Pre-populate with existing data
+- [x] Implement StockAdjustmentModal functionality (simple modal is OK)
+  - [x] Connect to POST `/api/inventory/stock`
+  - [x] Support Add/Set/Remove operations
+  - [x] Multi-location stock updates
+  - [x] Lot/batch assignment
+- [x] Implement AttachmentManager functionality (inline component)
+  - [x] File upload with drag-and-drop
+  - [x] Preview for images/PDFs
+  - [x] Delete attachments
+- [x] Implement TagManager functionality (inline component)
+  - [x] Add new tags
+  - [x] Remove tags
+  - [x] Tag autocomplete
 
 ### Storage Locations
 - [x] Create `/locations/new` page for adding locations
@@ -101,7 +101,6 @@
   - [x] **Single Mode**:
     - [x] Name, description, parent location
     - [ ] Location type selector
-    - [ ] QR code preview
   - [x] **Row Mode**:
     - [x] Prefix input (e.g., "Box1-")
     - [x] Range type selector (Letters or Numbers)
@@ -126,18 +125,43 @@
 - [x] Add delete confirmation modal (simple modal is OK)
 - [ ] Add location move/reorganize functionality
 
+### Companies (Manufacturers & Vendors)
+
+**Backend API (Completed)**
+- [x] GET `/api/core/companies` - List companies with filtering
+- [x] GET `/api/core/companies/{id}` - Get company by ID
+- [x] POST `/api/core/companies` - Create new company
+- [x] PUT `/api/core/companies/{id}` - Update company
+- [x] DELETE `/api/core/companies/{id}` - Delete company
+
+**Frontend UI**
+- [x] Create `/companies` page for listing companies
+  - [x] Filter by type (Manufacturer / Vendor)
+  - [x] Search by name
+  - [x] Add/Edit/Delete actions per row
+- [x] Create `/companies/new` page for adding companies
+  - [x] Company name
+  - [x] Website URL
+  - [x] Type toggle (Manufacturer / Vendor / Both)
+  - [x] Contact information (email, phone, address)
+- [x] Create `/companies/{id}/edit` page for editing companies
+  - [x] Same fields as creation
+  - [ ] Show parts manufactured by this company
+  - [ ] Show orders from this vendor
+- [x] Add "Companies" link to sidebar (under Inventory section)
+
 ### Projects & BOM
-- [ ] Create `/projects/new` page for creating projects
-  - [ ] Project name, description, status
+- [x] Create `/projects/new` page for creating projects
+  - [x] Project name, description, status
   - [ ] Initial BOM setup
-- [ ] Create `/projects/{id}/edit` page for editing projects
-- [ ] Create `/projects/{id}/bom/import` page for BOM import
-  - [ ] CSV/TSV file upload
-  - [ ] Column mapping interface
-  - [ ] Preview imported data
-  - [ ] Auto-match to existing parts
-- [ ] Enhance `/projects/{id}` BOM tab with inline editing
-  - [ ] Update quantity, designators inline
+- [x] Create `/projects/{id}/edit` page for editing projects
+- [x] Create `/projects/{id}/bom/import` page for BOM import
+  - [x] CSV/TSV file upload
+  - [x] Column mapping interface
+  - [x] Preview imported data
+  - [x] Auto-match to existing parts
+- [x] Enhance `/projects/{id}` BOM tab with inline editing
+  - [x] Update quantity, designators inline
   - [ ] Assign matched part via dropdown/search
   - [ ] Set substitutes
 - [ ] Implement BOM matching workflow

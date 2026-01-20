@@ -1,0 +1,153 @@
+Name,Inventory,Description,Manufacturer,Designator,Location
+"Capacitor, Ceramic, 50V, 101",10,,Elegoo,C,SM01-A1
+"Capacitor, Ceramic, 50V, 102",10,,Elegoo,C,SM01-A2
+"Capacitor, Ceramic, 50V, 103",10,,Elegoo,C,SM01-A3
+"Capacitor, Ceramic, 50V, 104",10,,Elegoo,C,SM01-A4
+"Capacitor, Ceramic, 50V, 10P",10,,Elegoo,C,SM01-A5
+"Capacitor, Ceramic, 50V, 151",10,,Elegoo,C,SM01-A6
+"Capacitor, Ceramic, 50V, 152",10,,Elegoo,C,SM01-B1
+"Capacitor, Ceramic, 50V, 153",10,,Elegoo,C,SM01-B2
+"Capacitor, Ceramic, 50V, 15P",10,,Elegoo,C,SM01-B3
+"Capacitor, Ceramic, 50V, 221",10,,Elegoo,C,SM01-B4
+"Capacitor, Ceramic, 50V, 222",10,,Elegoo,C,SM01-B5
+"Capacitor, Ceramic, 50V, 223",10,,Elegoo,C,SM01-B6
+"Capacitor, Ceramic, 50V, 22P",10,,Elegoo,C,SM01-C1
+"Capacitor, Ceramic, 50V, 2P",10,,Elegoo,C,SM01-C2
+"Capacitor, Ceramic, 50V, 30P",10,,Elegoo,C,SM01-C3
+"Capacitor, Ceramic, 50V, 331",10,,Elegoo,C,SM01-C4
+"Capacitor, Ceramic, 50V, 332",10,,Elegoo,C,SM01-C5
+"Capacitor, Ceramic, 50V, 33P",10,,Elegoo,C,SM01-C6
+"Capacitor, Ceramic, 50V, 3P",10,,Elegoo,C,SM01-D1
+"Capacitor, Ceramic, 50V, 471",10,,Elegoo,C,SM01-D2
+"Capacitor, Ceramic, 50V, 472",10,,Elegoo,C,SM01-D3
+"Capacitor, Ceramic, 50V, 473",10,,Elegoo,C,SM01-D4
+"Capacitor, Ceramic, 50V, 47P",10,,Elegoo,C,SM01-D5
+"Capacitor, Ceramic, 50V, 5P",10,,Elegoo,C,SM01-D6
+"Capacitor, Ceramic, 50V, 681",10,,Elegoo,C,SM01-E1
+"Capacitor, Ceramic, 50V, 682",10,,Elegoo,C,SM01-E2
+"Capacitor, Ceramic, 50V, 683",10,,Elegoo,C,SM01-E3
+"Capacitor, Ceramic, 50V, 68P",10,,Elegoo,C,SM01-E4
+"Capacitor, Ceramic, 50V, 75P",10,,Elegoo,C,SM01-E5
+"Capacitor, Ceramic, 50V, 82P",10,,Elegoo,C,SM01-E6
+"Capacitor, Electrolytic, 16V 100µF",10,,Elegoo,C,SM02-B4
+"Capacitor, Electrolytic, 16V 220µF",10,,Elegoo,C,SM02-B5
+"Capacitor, Electrolytic, 16V 22µF",10,,Elegoo,C,SM02-B1
+"Capacitor, Electrolytic, 16V 33µF",10,,Elegoo,C,SM02-B2
+"Capacitor, Electrolytic, 16V 470µF",10,,Elegoo,C,SM02-B6
+"Capacitor, Electrolytic, 16V 47µF",10,,Elegoo,C,SM02-B3
+"Capacitor, Electrolytic, 25V 10µF",10,,Elegoo,C,SM02-A6
+"Capacitor, Electrolytic, 50V 0.22µF",10,,Elegoo,C,SM02-A1
+"Capacitor, Electrolytic, 50V 0.47µF",10,,Elegoo,C,SM02-A2
+"Capacitor, Electrolytic, 50V 1µF",10,,Elegoo,C,SM02-A3
+"Capacitor, Electrolytic, 50V 2.2µF",10,,Elegoo,C,SM02-A4
+"Capacitor, Electrolytic, 50V 4.7µF",10,,Elegoo,C,SM02-A5
+"Diode, 1N4007",25,,Elegoo,D,SM04-B5
+"Diode, 1N4148",25,,Elegoo,D,SM04-B6
+"Diode, 1N5399",10,,Elegoo,D,SM04-C1
+"Diode, 1N5819",10,,Elegoo,D,SM04-C2
+"Diode, FR107",10,,Elegoo,D,SM04-C3
+"Diode, FR207",10,,Elegoo,D,SM04-C4
+"Diode, IN5408",5,,Elegoo,D,SM04-C5
+"Diode, IN5822",5,,Elegoo,D,SM04-C6
+"LED, 3mm Blue",20,,Elegoo,LED,SM04-D1
+"LED, 3mm Green",20,,Elegoo,LED,SM04-D2
+"LED, 3mm Red",20,,Elegoo,LED,SM04-D3
+"LED, 3mm White",20,,Elegoo,LED,SM04-D4
+"LED, 3mm Yellow",20,,Elegoo,LED,SM04-D5
+"LED, 5mm Blue",20,,Elegoo,LED,SM04-E1
+"LED, 5mm Green",20,,Elegoo,LED,SM04-E2
+"LED, 5mm Red",20,,Elegoo,LED,SM04-E3
+"LED, 5mm White",20,,Elegoo,LED,SM04-E4
+"LED, 5mm Yellow",20,,Elegoo,LED,SM04-E5
+"Resistor, Adjustable RM063, 100KΩ (104)",1,,Elegoo,RV,SM04-D6
+"Resistor, Adjustable RM063, 100Ω (101)",1,,Elegoo,RV,SM04-D6
+"Resistor, Adjustable RM063, 10KΩ (103)",1,,Elegoo,RV,SM04-D6
+"Resistor, Adjustable RM063, 1KΩ (102)",1,,Elegoo,RV,SM04-D6
+"Resistor, Adjustable RM063, 1MΩ (105)",1,,Elegoo,RV,SM04-D6
+"Resistor, Adjustable RM063, 200KΩ (204)",1,,Elegoo,RV,SM04-D6
+"Resistor, Adjustable RM063, 200Ω (201)",1,,Elegoo,RV,SM04-D6
+"Resistor, Adjustable RM063, 20KΩ (203)",1,,Elegoo,RV,SM04-D6
+"Resistor, Adjustable RM063, 2KΩ (202)",1,,Elegoo,RV,SM04-D6
+"Resistor, Adjustable RM063, 500KΩ (504)",1,,Elegoo,RV,SM04-D6
+"Resistor, Adjustable RM063, 500Ω (501)",1,,Elegoo,RV,SM04-D6
+"Resistor, Adjustable RM063, 50KΩ (503)",1,,Elegoo,RV,SM04-D6
+"Resistor, Adjustable RM063, 5KΩ (502)",1,,Elegoo,RV,SM04-D6
+"Resistor, Metal Film, 100KΩ",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM04-A1
+"Resistor, Metal Film, 100Ω",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-B5
+"Resistor, Metal Film, 10KΩ",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-D4
+"Resistor, Metal Film, 10Ω",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-A2
+"Resistor, Metal Film, 1KΩ",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-D3
+"Resistor, Metal Film, 1MΩ",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM04-B4
+"Resistor, Metal Film, 1Ω",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-A1
+"Resistor, Metal Film, 200KΩ",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM04-A2
+"Resistor, Metal Film, 200Ω",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-B6
+"Resistor, Metal Film, 20KΩ",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-D5
+"Resistor, Metal Film, 20Ω",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-A3
+"Resistor, Metal Film, 220Ω",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-C1
+"Resistor, Metal Film, 330KΩ",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM04-A3
+"Resistor, Metal Film, 330Ω",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-C2
+"Resistor, Metal Film, 33KΩ",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-D6
+"Resistor, Metal Film, 33Ω",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-A4
+"Resistor, Metal Film, 470KΩ",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM04-A4
+"Resistor, Metal Film, 470Ω",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-C3
+"Resistor, Metal Film, 47KΩ",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-E1
+"Resistor, Metal Film, 47Ω",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-A5
+"Resistor, Metal Film, 510KΩ",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM04-A5
+"Resistor, Metal Film, 510Ω",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-C4
+"Resistor, Metal Film, 51KΩ",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-E2
+"Resistor, Metal Film, 51Ω",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-A6
+"Resistor, Metal Film, 680KΩ",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM04-A6
+"Resistor, Metal Film, 680Ω",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-C5
+"Resistor, Metal Film, 68KΩ",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-E3
+"Resistor, Metal Film, 68Ω",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-B1
+"Resistor, Metal Film, 750KΩ",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM04-B1
+"Resistor, Metal Film, 750Ω",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-C6
+"Resistor, Metal Film, 75KΩ",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-E4
+"Resistor, Metal Film, 75Ω",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-B2
+"Resistor, Metal Film, 820KΩ",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM04-B2
+"Resistor, Metal Film, 820Ω",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-D1
+"Resistor, Metal Film, 82KΩ",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-E5
+"Resistor, Metal Film, 82Ω",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-B3
+"Resistor, Metal Film, 910KΩ",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM04-B3
+"Resistor, Metal Film, 910Ω",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-D2
+"Resistor, Metal Film, 91KΩ",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-E6
+"Resistor, Metal Film, 91Ω",20,1/4W 1% Metal Film Resistor,Elegoo,R,SM03-B4
+"Transistor, TO-92 2N2222",10,,Elegoo,Q,SM02-C1
+"Transistor, TO-92 2N3904",10,,Elegoo,Q,SM02-C2
+"Transistor, TO-92 2N3906",10,,Elegoo,Q,SM02-C3
+"Transistor, TO-92 2N5401",10,,Elegoo,Q,SM02-C4
+"Transistor, TO-92 2N5551",10,,Elegoo,Q,SM02-C5
+"Transistor, TO-92 58050",10,,Elegoo,Q,SM02-C6
+"Transistor, TO-92 58550",10,,Elegoo,Q,SM02-D1
+"Transistor, TO-92 59012",10,,Elegoo,Q,SM02-D2
+"Transistor, TO-92 59013",10,,Elegoo,Q,SM02-D3
+"Transistor, TO-92 59014",10,,Elegoo,Q,SM02-D4
+"Transistor, TO-92 59015",10,,Elegoo,Q,SM02-D5
+"Transistor, TO-92 59018",10,,Elegoo,Q,SM02-D6
+"Transistor, TO-92 A1015",10,,Elegoo,Q,SM02-E1
+"Transistor, TO-92 A42",10,,Elegoo,Q,SM02-E2
+"Transistor, TO-92 A773",10,,Elegoo,Q,SM02-E3
+"Transistor, TO-92 A92",10,,Elegoo,Q,SM02-E4
+"Transistor, TO-92 C1815",10,,Elegoo,Q,SM02-E5
+"Transistor, TO-92 C945",10,,Elegoo,Q,SM02-E6
+"Trimer, Adjustable, 3296W, 101 - 100Ω",1,,Elegoo,RV,SM04-E6
+"Trimer, Adjustable, 3296W, 102 - 1KΩ",1,,Elegoo,RV,SM04-E6
+"Trimer, Adjustable, 3296W, 103 - 10KΩ",1,,Elegoo,RV,SM04-E6
+"Trimer, Adjustable, 3296W, 104 - 100KΩ",1,,Elegoo,RV,SM04-E6
+"Trimer, Adjustable, 3296W, 105 - 1MΩ",1,,Elegoo,RV,SM04-E6
+"Trimer, Adjustable, 3296W, 201 - 200Ω",1,,Elegoo,RV,SM04-E6
+"Trimer, Adjustable, 3296W, 202 - 2KΩ",1,,Elegoo,RV,SM04-E6
+"Trimer, Adjustable, 3296W, 203 - 20KΩ",1,,Elegoo,RV,SM04-E6
+"Trimer, Adjustable, 3296W, 204 - 200KΩ",1,,Elegoo,RV,SM04-E6
+"Trimer, Adjustable, 3296W, 501 - 500Ω",1,,Elegoo,RV,SM04-E6
+"Trimer, Adjustable, 3296W, 502 - 5KΩ",1,,Elegoo,RV,SM04-E6
+"Trimer, Adjustable, 3296W, 503 - 50KΩ",1,,Elegoo,RV,SM04-E6
+"Trimer, Adjustable, 3296W, 504 - 500KΩ",1,,Elegoo,RV,SM04-E6
+"Voltage Regulators, L7805",2,,Elegoo,VR,SM05-A1
+"Voltage Regulators, L7809",2,,Elegoo,VR,SM05-A1
+"Voltage Regulators, L7812",2,,Elegoo,VR,SM05-A1
+"Voltage Regulators, L7815",2,,Elegoo,VR,SM05-A1
+"Voltage Regulators, L7905",2,,Elegoo,VR,SM05-A2
+"Voltage Regulators, L7909",2,,Elegoo,VR,SM05-A2
+"Voltage Regulators, L7912",2,,Elegoo,VR,SM05-A2
+"Voltage Regulators, LM317",2,,Elegoo,VR,SM05-A2
