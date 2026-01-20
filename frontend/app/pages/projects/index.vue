@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { ColumnDef } from '@tanstack/vue-table'
+
 definePageMeta({
   title: 'Projects'
 })
@@ -17,6 +19,8 @@ const columns: ColumnDef<Project>[] = [
   { accessorKey: 'revision', header: 'Revision' },
   { accessorKey: 'updated_at', header: 'Last Modified' }
 ]
+
+const cardFields = ['status', 'revision', 'updated_at']
 
 const { data: projects } = await useAsyncData('projects', () =>
   $fetch<Project[]>('/db/projects/')
@@ -37,38 +41,16 @@ const projectData = computed(() => projects.value ?? [])
       </div>
     </div>
 
-    <UCard v-if="projects">
-      <template v-if="projectData.length > 0">
-        <UTable :data="projectData" :columns="columns">
-          <template #name-header="{ column }">
-            <span class="font-semibold">{{ column.columnDef.header }}</span>
-          </template>
-          <template #name-cell="{ row }">
-            <NuxtLink :to="`/projects/${row.original.id}`" class="font-medium text-primary-500 hover:underline">
-              {{ row.original.name }}
-            </NuxtLink>
-          </template>
-
-          <template #status-cell="{ row }">
-            <UBadge :color="row.original.status === 'draft' ? 'gray' : row.original.status === 'active' ? 'green' : 'blue'" variant="subtle">
-              {{ row.original.status }}
-            </UBadge>
-          </template>
-
-          <template #updated_at-cell="{ row }">
-            {{ new Date(row.original.updated_at).toLocaleDateString() }}
-          </template>
-        </UTable>
-      </template>
-
-      <template v-else>
-        <div class="flex flex-col items-center justify-center py-12 text-gray-400">
-          <UIcon name="i-heroicons-folder-open" class="w-12 h-12 mb-4 opacity-50" />
-          <p class="mb-4">No projects yet. Create your first project to get started.</p>
-          <UButton icon="i-heroicons-plus" label="Create Project" color="primary" to="/projects/new" />
-        </div>
-      </template>
-    </UCard>
+    <DataTable
+      v-if="projects"
+      :data="projectData"
+      :columns="columns"
+      :card-fields="cardFields"
+      searchable
+      clickable-column="name"
+      default-sort="{ id: 'updated_at', desc: true }"
+      :on-row-click="(project) => ({ path: `/projects/${project.id}` })"
+    />
 
     <UCard v-else>
       <div class="flex items-center justify-center py-12">

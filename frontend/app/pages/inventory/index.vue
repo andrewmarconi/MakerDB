@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { h, resolveComponent } from 'vue'
-import type { TableColumn } from '@nuxt/ui'
+import type { ColumnDef } from '@nuxt/ui'
+
+definePageMeta({
+  title: 'Inventory'
+})
 
 interface Part {
   id: string
@@ -11,77 +14,33 @@ interface Part {
   manufacturer?: { name: string }
 }
 
-const UBadge = resolveComponent('UBadge')
-const UButton = resolveComponent('UButton')
-const UDropdownMenu = resolveComponent('UDropdownMenu')
-
-const columns: TableColumn<Part>[] = [
-  {
-    accessorKey: 'name',
-    header: 'Name',
-    enableSorting: true,
-    cell: ({ row }) => h('div', { class: 'font-medium' }, row.getValue('name'))
-  },
-  { accessorKey: 'mpn', header: 'MPN', enableSorting: true },
-  {
-    accessorKey: 'part_type',
-    header: 'Type',
-    enableSorting: false,
-    cell: ({ row }) => {
-      const type = row.getValue('part_type') as string
-      const colors: Record<string, string> = {
-        'local': 'gray',
-        'linked': 'blue',
-        'meta': 'purple',
-        'sub-assembly': 'green'
-      }
-      const labels: Record<string, string> = {
-        'local': 'Local',
-        'linked': 'Linked',
-        'meta': 'Meta-Part',
-        'sub-assembly': 'Sub-Assembly'
-      }
-      return h(UBadge, { color: colors[type] || 'gray', variant: 'subtle', size: 'sm' }, () => labels[type] || type || 'Unknown')
-    }
-  },
-  {
-    accessorKey: 'total_stock',
-    header: 'Stock',
-    enableSorting: true,
-    cell: ({ row }) => h('div', { class: 'font-mono' }, row.getValue('total_stock'))
-  },
-  {
-    id: 'actions',
-    header: '',
-    enableSorting: false,
-    cell: ({ row }) => {
-      const items = [
-        { label: 'View Stock', icon: 'i-heroicons-circle-stack' },
-        { label: 'Print Label', icon: 'i-heroicons-printer' }
-      ]
-      return h('div', { class: 'flex justify-end gap-1' }, [
-        h(UButton, {
-          variant: 'ghost',
-          color: 'gray',
-          icon: 'i-heroicons-pencil-square',
-          to: `/inventory/${row.original.id}`
-        }),
-        h(UDropdownMenu, { items }, () => {
-          return h(UButton, { variant: 'ghost', color: 'gray', icon: 'i-heroicons-ellipsis-horizontal' })
-        })
-      ])
-    }
-  }
+const columns: ColumnDef<Part>[] = [
+  { accessorKey: 'name', header: 'Name' },
+  { accessorKey: 'mpn', header: 'MPN' },
+  { accessorKey: 'part_type', header: 'Type', enableSorting: false },
+  { accessorKey: 'total_stock', header: 'Stock' }
 ]
 
+const cardFields = ['part_type', 'total_stock']
+
+const partTypes = [
+  { label: 'All', value: 'All' },
+  { label: 'Linked', value: 'Linked' },
+  { label: 'Local', value: 'Local' },
+  { label: 'Meta', value: 'Meta' },
+  { label: 'Sub-assembly', value: 'Sub-assembly' }
+]
+
+const filterConfig = [
+  { key: 'part_type', label: 'Type', type: 'select', options: partTypes }
+]
+
+const filters = ref<Record<string, any>>({ part_type: 'All' })
 const ITEMS_PER_PAGE = 25
 const page = ref(1)
 const total = ref(0)
 const parts = ref<Part[]>([])
 const pending = ref(false)
-const search = ref('')
-const selectedType = ref('All')
-const partTypes = ['All', 'Linked', 'Local', 'Meta', 'Sub-assembly']
 const sorting = ref<{ id: string; desc: boolean }[]>([])
 
 async function fetchParts() {
@@ -89,7 +48,12 @@ async function fetchParts() {
   try {
     const skip = (page.value - 1) * ITEMS_PER_PAGE
     let url = `/db/parts/?skip=${skip}&limit=${ITEMS_PER_PAGE}`
-    
+
+    const filters = filters.value
+    if (filters.part_type && filters.part_type !== 'All') {
+      url += `&part_type=${filters.part_type}`
+    }
+
     if (sorting.value.length > 0) {
       const sort = sorting.value[0]
       const order = sort.desc ? '-' : ''
@@ -111,18 +75,16 @@ async function fetchParts() {
   }
 }
 
-watch([page, search, selectedType, sorting], () => {
+watch([page, filters, sorting], () => {
   page.value = 1
   fetchParts()
 }, { deep: true })
 
-const filteredItems = computed<Part[]>(() => {
+const filteredItems = computed(() => {
   if (!parts.value) return []
   return (parts.value as Part[]).filter((item: Part) => {
-    const matchesSearch = item.name.toLowerCase().includes(search.value.toLowerCase()) ||
-      item.mpn.toLowerCase().includes(search.value.toLowerCase())
-    const matchesType = selectedType.value === 'All' || item.part_type === selectedType.value.toLowerCase()
-    return matchesSearch && matchesType
+    const matchesType = filters.value.part_type === 'All' || item.part_type === filters.value.part_type?.toLowerCase()
+    return matchesType
   })
 })
 
@@ -143,11 +105,11 @@ onMounted(fetchParts)
     </div>
 
     <UCard>
-      <div class="flex flex-col md:flex-row gap-4 mb-4">
-        <UInput v-model="search" icon="i-heroicons-magnifying-glass" placeholder="Search Name or MPN..."
-          class="flex-1" />
-        <USelect v-model="selectedType" :items="partTypes" class="w-48" />
-      </div>
+      <DataTableFilter
+        :filters="filterConfig"
+        v-model="filters"
+        @filter-change="() => { page.value = 1 }"
+      />
 
       <div v-if="pending" class="flex justify-center py-12">
         <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-gray-400" />
@@ -158,7 +120,29 @@ onMounted(fetchParts)
         <p>No parts found.</p>
       </div>
 
-      <UTable v-else :data="filteredItems" :columns="columns" v-model:sorting="sorting" />
+      <DataTable
+        v-else
+        :data="filteredItems"
+        :columns="columns"
+        :card-fields="cardFields"
+        clickable-column="name"
+        :on-row-click="(part) => ({ path: `/inventory/${part.id}` })"
+        :paginatable="false"
+      >
+        <template #part_type-cell="{ row }">
+          <UBadge
+            :color="row.part_type === 'local' ? 'gray' : row.part_type === 'linked' ? 'blue' : row.part_type === 'meta' ? 'purple' : 'green'"
+            variant="subtle"
+            size="sm"
+          >
+            {{ row.part_type }}
+          </UBadge>
+        </template>
+
+        <template #total_stock-cell="{ row }">
+          <div class="font-mono">{{ row.total_stock }}</div>
+        </template>
+      </DataTable>
 
       <div v-if="total > ITEMS_PER_PAGE" class="flex justify-center mt-4">
         <UPagination

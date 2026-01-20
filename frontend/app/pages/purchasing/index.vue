@@ -1,14 +1,32 @@
-<script setup>
-const columns = [
-  { id: 'order_id', key: 'id', label: 'Order ID', sortable: true },
-  { id: 'vendor', key: 'vendor', label: 'Vendor', sortable: true },
-  { id: 'status', key: 'status', label: 'Status' },
-  { id: 'total', key: 'total', label: 'Total', sortable: true },
-  { id: 'date', key: 'date', label: 'Order Date', sortable: true },
-  { id: 'actions', key: 'actions', label: '' }
+<script setup lang="ts">
+import type { ColumnDef } from '@tanstack/vue-table'
+
+definePageMeta({
+  title: 'Purchasing'
+})
+
+interface Order {
+  id: string
+  order_id: string
+  vendor: { name: string }
+  status: string
+  total: number
+  date: string
+}
+
+const columns: ColumnDef<Order>[] = [
+  { accessorKey: 'order_id', header: 'Order ID' },
+  { accessorKey: 'vendor', header: 'Vendor' },
+  { accessorKey: 'status', header: 'Status' },
+  { accessorKey: 'total', header: 'Total' },
+  { accessorKey: 'date', header: 'Order Date' }
 ]
 
+const cardFields = ['vendor', 'status', 'total', 'date']
+
 const { data: orders, refresh } = await useApiFetch('/procurement/orders/')
+
+const orderData = computed(() => orders.value ?? [])
 </script>
 
 <template>
@@ -23,18 +41,25 @@ const { data: orders, refresh } = await useApiFetch('/procurement/orders/')
       </div>
     </div>
 
-    <UCard>
-      <UTable :columns="columns" :rows="orders">
-        <template #status-data="{ row }">
-          <StatusBadge :status="row.status" />
-        </template>
+    <DataTable
+      v-if="orders"
+      :data="orderData"
+      :columns="columns"
+      :card-fields="cardFields"
+      searchable
+      clickable-column="order_id"
+      :on-row-click="(order) => ({ path: `/purchasing/${order.id}` })"
+    >
+      <template #status-cell="{ row }">
+        <StatusBadge :status="row.status" />
+      </template>
+    </DataTable>
 
-        <template #actions-data="{ row }">
-          <div class="flex justify-end">
-            <UButton variant="ghost" color="gray" icon="i-heroicons-eye" :to="`/purchasing/${row.id}`" />
-          </div>
-        </template>
-      </UTable>
+    <UCard v-else>
+      <div class="flex items-center justify-center py-12">
+        <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-primary-500" />
+        <span class="ml-3">Loading orders...</span>
+      </div>
     </UCard>
   </div>
 </template>
