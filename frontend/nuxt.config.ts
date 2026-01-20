@@ -11,6 +11,12 @@ export default defineNuxtConfig({
     compatibilityVersion: 4
   },
 
+  app: {
+    icon: {
+      favicon: 'favicon.png'
+    }
+  },
+
   modules: [
     // '@nuxt/a11y',
     '@nuxt/eslint',
