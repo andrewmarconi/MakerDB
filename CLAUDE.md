@@ -23,11 +23,14 @@ uv run python backend/manage.py migrate
 # Start development server (ASGI - serves both Django and FastAPI)
 uv run uvicorn makerdb.asgi:application --reload --app-dir backend
 
-# Run backend tests
+# Run backend tests (uses --reuse-db by default)
 uv run pytest
 
 # Run a single test file
 uv run pytest backend/tests/test_domain_phase2.py
+
+# Recreate test database
+uv run pytest --create-db
 
 # Lint/format
 uv run ruff check backend
@@ -44,6 +47,9 @@ npm install
 
 # Start dev server
 npm run dev
+
+# Run both backend and frontend together
+npm run dev:all
 
 # Run all tests
 npm test
@@ -86,11 +92,20 @@ The frontend proxies `/db/**` requests to `http://localhost:8000/api/**` via Nit
 
 All main entities inherit from `GlobalOpsBase` which provides UUID primary keys, `tags` (JSON array), `custom_fields` (JSON object), and timestamps.
 
+### FastAPI Routing Pattern
+
+Each Django app contains:
+- `models.py` - Django ORM models
+- `schemas.py` - Pydantic schemas for API request/response validation
+- `router.py` - FastAPI router with CRUD endpoints
+
+All routers are registered in [backend/makerdb/api.py](backend/makerdb/api.py). FastAPI routes use `sync_to_async` decorator to call Django ORM operations asynchronously.
+
 ### Key Conventions
 
 - **Package manager**: `uv` only (never pip/poetry/pipenv)
 - **Python**: 3.12+ with modern type hints (`list[str]` not `List[str]`)
-- **Async**: Prefer async ORM calls (`alib`) in FastAPI routes
+- **Async**: FastAPI routes use `sync_to_async` from `asgiref.sync` to wrap Django ORM calls
 - **Config**: Use `django-environ` with `.env` file at project root
 - **Linting**: `ruff` only (replaces flake8/isort/black)
 - **Testing**: `pytest` with `pytest-django` (not unittest)
