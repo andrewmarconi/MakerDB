@@ -1,5 +1,7 @@
 # MakerDB
 
+![MakerDB Header](docs/media/makerdb-header.jpg)
+
 A single-tenant inventory and parts management system designed for hardware makers, electronics engineers, and small manufacturing teams. MakerDB helps you track parts, manage stock levels, organize storage locations, plan projects with BOMs, and handle procurement.
 
 ## Features

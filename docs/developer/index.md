@@ -1,5 +1,7 @@
 # Developer Documentation
 
+![MakerDB Header](../media/makerdb-header.jpg)
+
 Welcome to the MakerDB developer documentation! This guide will help you get started contributing to MakerDB, whether you're working on the frontend, backend, or both.
 
 ## Quick Links
