@@ -49,9 +49,9 @@ async function fetchParts() {
     const skip = (page.value - 1) * ITEMS_PER_PAGE
     let url = `/db/parts/?skip=${skip}&limit=${ITEMS_PER_PAGE}`
 
-    const filters = filters.value
-    if (filters.part_type && filters.part_type !== 'All') {
-      url += `&part_type=${filters.part_type}`
+    const currentFilters = filters.value
+    if (currentFilters.part_type && currentFilters.part_type !== 'All') {
+      url += `&part_type=${currentFilters.part_type}`
     }
 
     if (sorting.value.length > 0) {

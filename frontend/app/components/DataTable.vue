@@ -1,5 +1,6 @@
 <script setup lang="ts" generic="T">
-import type { ColumnDef } from '@tanstack/vue-table'
+import { useStorage } from '@vueuse/core'
+import type { ColumnDef } from '@nuxt/ui'
 
 interface ActionConfig {
   label: string
@@ -47,7 +48,7 @@ const search = ref('')
 
 const viewMode = useStorage(`datatable-${storageKey.value}-viewMode`, props.viewMode)
 
-const columnVisibility = useStorage<Record<string, boolean>>(`datatable-${storageKey.value}-columns`, {})
+const columnVisibility = useStorage(`datatable-${storageKey.value}-columns`, {})
 
 const page = ref(1)
 
