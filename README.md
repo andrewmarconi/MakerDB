@@ -147,23 +147,49 @@ Each Django app follows the pattern:
 
 ## Documentation
 
-Detailed documentation can be found in the `docs/` directory:
+### Developer Documentation
 
-- **[Architecture Overview](docs/ARCHITECTURE.md)** - System design and data model (coming soon)
-- **[API Reference](docs/API.md)** - REST API endpoints and schemas (coming soon)
-- **[Development Guide](docs/DEVELOPMENT.md)** - Contribution guidelines and coding standards (coming soon)
-- **[Deployment](docs/DEPLOYMENT.md)** - Production deployment instructions (coming soon)
-- **[User Guide](docs/USER_GUIDE.md)** - End-user documentation (coming soon)
+Comprehensive guides for contributing to MakerDB can be found in the [`docs/developer/`](docs/developer/) directory:
+
+- **[Developer Guide](docs/developer/index.md)** - Start here for an overview of the architecture and development workflow
+- **[Frontend Development](docs/developer/frontend/)** - Vue.js, Nuxt 4, TypeScript, and UI development
+  - [Getting Started](docs/developer/frontend/getting-started.md)
+  - [Technology Stack](docs/developer/frontend/technology-stack.md)
+  - [Component Development](docs/developer/frontend/component-development.md)
+  - [Testing](docs/developer/frontend/testing.md)
+- **[Backend Development](docs/developer/backend/)** - Django, FastAPI, and API development
+  - [Getting Started](docs/developer/backend/getting-started.md)
+  - [Technology Stack](docs/developer/backend/technology-stack.md)
+  - [API Development](docs/developer/backend/api-development.md)
+  - [Testing](docs/developer/backend/testing.md)
+- **[Contributing Guidelines](docs/developer/contributing/)** - How to contribute to the project
+  - [Getting Started](docs/developer/contributing/getting-started.md)
+  - [Development Workflow](docs/developer/contributing/development-workflow.md)
+  - [Pull Request Process](docs/developer/contributing/pull-request-process.md)
+  - [Code of Conduct](docs/developer/contributing/code-of-conduct.md)
+
+### Additional Documentation
+
+- **[CLAUDE.md](CLAUDE.md)** - Quick reference for AI-assisted development
+- **Architecture Overview** - System design and data model (coming soon)
+- **API Reference** - REST API endpoints and schemas (coming soon)
+- **Deployment Guide** - Production deployment instructions (coming soon)
+- **User Guide** - End-user documentation (coming soon)
 
 ## Contributing
 
-Contributions are welcome! Please see [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) (coming soon) for:
-- Development workflow
-- Coding standards
-- Testing requirements
-- Pull request process
+We welcome contributions from developers of all skill levels! Whether you're interested in frontend, backend, or full-stack development, there's a place for you.
 
-For immediate guidance, see [CLAUDE.md](CLAUDE.md) for development conventions.
+**To get started:**
+
+1. Read the [Developer Guide](docs/developer/index.md) for an overview
+2. Check out specific guides:
+   - [Frontend Development](docs/developer/frontend/) - For UI/UX work
+   - [Backend Development](docs/developer/backend/) - For API and database work
+3. Review the [Contributing Guidelines](docs/developer/contributing/)
+4. Find an issue labeled `good first issue` to work on
+
+For AI-assisted development, see [CLAUDE.md](CLAUDE.md) for quick reference commands and conventions.
 
 ## Database Admin
 

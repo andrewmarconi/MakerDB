@@ -4,9 +4,9 @@ Welcome to the MakerDB developer documentation! This guide will help you get sta
 
 ## Quick Links
 
-- **[Frontend Development Guide](FRONTEND.md)** - Vue.js, Nuxt 4, and UI development
-- **[Backend Development Guide](BACKEND.md)** - Django, FastAPI, and API development
-- **[Contributing Guidelines](CONTRIBUTING.md)** - How to contribute to the project
+- **[Frontend Development Guide](frontend/index.md)** - Vue.js, Nuxt 4, and UI development
+- **[Backend Development Guide](backend/index.md)** - Django, FastAPI, and API development
+- **[Contributing Guidelines](contributing/index.md)** - How to contribute to the project
 - **[Project README](../../README.md)** - Project overview and quick start
 
 ## Table of Contents
@@ -186,7 +186,7 @@ Depending on your interests and skills, you can contribute to different areas:
 
 #### 1. Frontend Development
 **Skills**: Vue.js, TypeScript, CSS/Tailwind
-**See**: [Frontend Development Guide](FRONTEND.md)
+**See**: [Frontend Development Guide](frontend/index.md)
 
 **Common tasks**:
 - Building UI components
@@ -197,7 +197,7 @@ Depending on your interests and skills, you can contribute to different areas:
 
 #### 2. Backend Development
 **Skills**: Python, Django, FastAPI, SQL
-**See**: [Backend Development Guide](BACKEND.md)
+**See**: [Backend Development Guide](backend/index.md)
 
 **Common tasks**:
 - Adding new API endpoints
@@ -218,7 +218,7 @@ Depending on your interests and skills, you can contribute to different areas:
 
 #### 4. Testing & Quality
 **Skills**: Testing frameworks, debugging
-**See**: [Contributing Guidelines](CONTRIBUTING.md)
+**See**: [Contributing Guidelines](contributing/index.md)
 
 **Common tasks**:
 - Writing unit tests
@@ -228,7 +228,7 @@ Depending on your interests and skills, you can contribute to different areas:
 
 #### 5. Documentation
 **Skills**: Technical writing, markdown
-**See**: [Contributing Guidelines](CONTRIBUTING.md)
+**See**: [Contributing Guidelines](contributing/index.md)
 
 **Common tasks**:
 - Improving developer docs
@@ -434,7 +434,7 @@ frontend/app/
 ### Common Questions
 
 **Q: I'm new to Django/Vue. Where should I start?**
-A: Start with small tasks like documentation improvements or bug fixes. Read the relevant development guide ([Frontend](FRONTEND.md) or [Backend](BACKEND.md)) and explore the codebase.
+A: Start with small tasks like documentation improvements or bug fixes. Read the relevant development guide ([Frontend](frontend/index.md) or [Backend](backend/index.md)) and explore the codebase.
 
 **Q: How do I run tests?**
 A: Backend: `uv run pytest`, Frontend: `cd frontend && npm test`
@@ -470,9 +470,9 @@ A: Open a GitHub issue with the "question" label or start a GitHub Discussion.
 ## Next Steps
 
 1. **Read the guides**
-   - [Frontend Development Guide](FRONTEND.md) for UI work
-   - [Backend Development Guide](BACKEND.md) for API work
-   - [Contributing Guidelines](CONTRIBUTING.md) for workflow
+   - [Frontend Development Guide](frontend/index.md) for UI work
+   - [Backend Development Guide](backend/index.md) for API work
+   - [Contributing Guidelines](contributing/index.md) for workflow
 
 2. **Set up your environment**
    - Follow the "Getting Started" section above
@@ -495,6 +495,6 @@ A: Open a GitHub issue with the "question" label or start a GitHub Discussion.
 
 ---
 
-**Welcome to the MakerDB community! We're excited to have you here.** 🎉
+**Welcome to the MakerDB community!**
 
 If you have questions or suggestions for improving this documentation, please open an issue or pull request.
