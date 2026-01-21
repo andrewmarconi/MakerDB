@@ -63,7 +63,7 @@ const isLoading = computed(() => {
       searchable
       clickable-column="order_id" 
       :loading="!isLoading"
-      :on-row-click="(row) => ({ path: `/purchasing/${row.original.id}` })">
+      :on-row-click="(item) => ({ path: `/purchasing/${item.id}` })">
       <template #status-cell="{ row }">
         <StatusBadge :status="row.original.status" />
       </template>

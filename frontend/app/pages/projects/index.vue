@@ -61,6 +61,6 @@ const isLoading = computed(() => {
       clickable-column="name" 
       :default-sort="{ id: 'updated_at', desc: true }" 
       :loading="!isLoading"
-      :on-row-click="(row) => ({ path: `/projects/${row.original.id}` })" />
+       :on-row-click="(item) => ({ path: `/projects/${item.id}` })" />
   </div>
 </template>
