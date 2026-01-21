@@ -30,7 +30,7 @@ const cardFields = ['website', 'is_manufacturer', 'is_vendor', 'created_at']
 
 const { data, pending, error } = await useAsyncData(
   'companies',
-  (_nuxtApp, { signal }) => $fetch<Company[]>('/db/core/companies/', { signal }),
+  (_nuxtApp, { signal }) => $fetch<Company[]>('/db/companies/', { signal }),
 )
 
 const isLoading = computed(() => {

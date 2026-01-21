@@ -5,7 +5,7 @@ from core.models import Company
 from core.schemas import CompanySchema, CompanyCreate
 from asgiref.sync import sync_to_async
 
-router = APIRouter(prefix="/core", tags=["Core"])
+router = APIRouter(tags=["Core"])
 
 
 @router.get("/companies", response_model=List[CompanySchema])
