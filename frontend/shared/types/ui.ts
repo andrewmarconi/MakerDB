@@ -39,3 +39,55 @@ export type DataTableProps<T> = {
     emptyState?: string | any;
     loading?: boolean;
 };
+
+// ============================================================================
+// DataFormView Types
+// ============================================================================
+
+export type FieldType = 'text' | 'textarea' | 'number' | 'select' | 'checkbox' | 'tags' | 'custom';
+
+export type FieldSchema = {
+    /** Field key in modelValue */
+    key: string;
+    /** Display label */
+    label: string;
+    /** Field type */
+    type: FieldType;
+    /** Whether field is required */
+    required?: boolean;
+    /** Placeholder text */
+    placeholder?: string;
+    /** Options for select type */
+    options?: { label: string; value: any }[];
+    /** Validation function - return error message or null */
+    validator?: (value: any) => string | null;
+    /** Field-level readonly */
+    readonly?: boolean;
+    /** Column span for two-column layout (1 or 2) */
+    span?: 1 | 2;
+    /** Custom component for 'custom' type */
+    component?: any;
+    /** Props to pass to custom component */
+    componentProps?: Record<string, any>;
+};
+
+export type FieldState = 'idle' | 'editing' | 'saving' | 'success' | 'error';
+
+export type DataFormViewProps = {
+    /** v-model for the form data */
+    modelValue: Record<string, any>;
+    /** Field definitions */
+    schema: FieldSchema[];
+    /** API endpoint for PATCH/PUT */
+    endpoint: string;
+    /** ID for the entity */
+    entityId: string;
+    /** Save mode - 'patch' sends only changed field, 'put' sends full object */
+    saveMode?: 'patch' | 'put';
+    /** Debounce delay for auto-save in ms */
+    debounceMs?: number;
+    /** Layout mode */
+    layout?: 'single' | 'two-column';
+    /** Disable all editing */
+    readonly?: boolean;
+};
