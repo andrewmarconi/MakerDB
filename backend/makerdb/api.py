@@ -11,7 +11,7 @@ app.include_router(parts_router)
 app.include_router(inventory_router)
 app.include_router(projects_router)
 app.include_router(procurement_router)
-app.include_router(core_router, prefix="/companies", tags=["Companies"])
+app.include_router(core_router)
 
 
 @app.get("/health")
