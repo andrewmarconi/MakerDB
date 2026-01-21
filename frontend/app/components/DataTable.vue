@@ -107,22 +107,25 @@ const paginatedData = computed(() => {
   return sortedData.value.slice(start, end)
 })
 
-function handleRowClick(event: { row: Row<T> }) {
-  const row = event.row
-  if (props.onRowClick && row?.original) {
-    const result = props.onRowClick(row.original)
+function handleRowClick(event: any) {
+  const row = event?.row
+  if (!row) return
+  const item = row.original || row
+  if (props.onRowClick && item) {
+    const result = props.onRowClick(item)
     if (result && typeof result === 'object' && 'path' in result) {
       navigateTo(result.path)
     }
   }
-  if (row?.original) {
-    emit('row-click', row.original)
-  }
+  emit('row-click', item)
 }
 
-function getDetailRoute(row: Row<T> | undefined) {
-  if (!row || !props.clickableColumn || !props.onRowClick) return null
-  const result = props.onRowClick(row.original)
+function getDetailRoute(row: any) {
+  if (!row) return null
+  if (!props.clickableColumn || !props.onRowClick) return null
+  const item = row.original || row
+  if (!item) return null
+  const result = props.onRowClick(item)
   if (result && typeof result === 'object' && 'path' in result) {
     return result.path
   }
