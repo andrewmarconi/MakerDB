@@ -1,6 +1,7 @@
 <script setup lang="ts" generic="T">
 import { useStorage } from '@vueuse/core'
 import type { ColumnDef } from '@nuxt/ui'
+import type { Row } from '@tanstack/vue-table'
 
 interface ActionConfig {
   label: string
@@ -106,22 +107,33 @@ const paginatedData = computed(() => {
   return sortedData.value.slice(start, end)
 })
 
-function handleRowClick(row: T) {
-  if (props.onRowClick) {
-    const result = props.onRowClick(row)
+function handleRowClick(event: { row: Row<T> }) {
+  const row = event.row
+  if (props.onRowClick && row?.original) {
+    const result = props.onRowClick(row.original)
     if (result && typeof result === 'object' && 'path' in result) {
       navigateTo(result.path)
     }
   }
-  emit('row-click', row)
+  if (row?.original) {
+    emit('row-click', row.original)
+  }
 }
 
-function getDetailRoute(item: any) {
-  if (props.clickableColumn && props.onRowClick) {
-    const result = props.onRowClick(item)
-    if (result && typeof result === 'object' && 'path' in result) {
-      return result.path
-    }
+function getDetailRoute(row: Row<T> | undefined) {
+  if (!row || !props.clickableColumn || !props.onRowClick) return null
+  const result = props.onRowClick(row.original)
+  if (result && typeof result === 'object' && 'path' in result) {
+    return result.path
+  }
+  return null
+}
+
+function getDetailRouteFromItem(item: T) {
+  if (!props.clickableColumn || !props.onRowClick) return null
+  const result = props.onRowClick(item)
+  if (result && typeof result === 'object' && 'path' in result) {
+    return result.path
   }
   return null
 }
@@ -184,6 +196,7 @@ function getDetailRoute(item: any) {
         :data="paginatedData"
         :columns="visibleColumns"
         class="w-full"
+        @row-click="handleRowClick"
       >
         <template v-for="col in visibleColumns" :key="col.id || col.accessorKey" #[getColumnSlotKey(col)]="{ row, column, getValue }">
           <slot
@@ -208,8 +221,8 @@ function getDetailRoute(item: any) {
         <UCard v-for="item in paginatedData" :key="(item as any).id">
           <template #header>
             <NuxtLink
-              v-if="clickableColumn && getDetailRoute(item)"
-              :to="getDetailRoute(item)"
+              v-if="clickableColumn && getDetailRouteFromItem(item)"
+              :to="getDetailRouteFromItem(item)"
               class="font-medium text-primary-500 hover:underline"
             >
               {{ (item as any)[clickableColumn] }}
