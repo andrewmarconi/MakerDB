@@ -10,13 +10,6 @@ useSeoMeta({
   description: 'Manage your Bill of Materials and calculate production costs.'
 })
 
-interface Project {
-  id: string
-  name: string
-  status: string
-  revision: string
-  updated_at: string
-}
 
 const columns: ColumnDef<Project>[] = [
   { accessorKey: 'name', header: 'Project Name' },
@@ -31,11 +24,7 @@ const { data, pending, error } = await useAsyncData(
   (_nuxtApp, { signal }) => $fetch<Project[]>('/db/projects/', { signal }),
 )
 
-const isLoading = computed(() => {
-  if (pending) return true;
-  if (error) return true;
-  return false;
-})
+const isLoading = computed(() => pending.value || !!error.value)
 
 </script>
 
@@ -65,7 +54,7 @@ const isLoading = computed(() => {
       searchable
       clickable-column="name" 
       :default-sort="{ id: 'updated_at', desc: true }" 
-      :loading="!isLoading"
+      :loading="isLoading"
        :on-row-click="(item) => ({ path: `/projects/${item.id}` })" />
   </div>
 </template>

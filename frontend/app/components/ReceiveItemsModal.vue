@@ -30,14 +30,14 @@ const confirmReceipt = () => {
 
 <template>
   <UModal v-model="isOpen">
-    <UButton label="Receive Items" icon="i-heroicons-archive-box" color="green" @click="isOpen = true" />
+    <UButton label="Receive Items" icon="i-heroicons-archive-box" color="success" @click="isOpen = true" />
 
     <template #content>
       <UCard>
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="text-lg font-semibold">Receive Order: {{ order.id }}</h3>
-            <UButton color="gray" variant="ghost" icon="i-heroicons-x-mark" @click="isOpen = false" />
+            <UButton color="neutral" variant="ghost" icon="i-heroicons-x-mark" @click="isOpen = false" />
           </div>
           <div class="mt-4">
             <UStepper :model-value="step" :items="[{ label: 'Quantities' }, { label: 'Locations' }, { label: 'Confirm' }]" />
@@ -86,13 +86,13 @@ const confirmReceipt = () => {
 
         <template #footer>
           <div class="flex justify-between gap-3">
-            <UButton v-if="step > 1" label="Back" color="gray" variant="ghost" @click="prevStep" />
+            <UButton v-if="step > 1" label="Back" color="neutral" variant="ghost" @click="prevStep" />
             <div v-else />
             
             <div class="flex gap-3">
-              <UButton label="Cancel" color="gray" variant="ghost" @click="isOpen = false" />
+              <UButton label="Cancel" color="neutral" variant="ghost" @click="isOpen = false" />
               <UButton v-if="step < 3" label="Next" color="primary" @click="nextStep" />
-              <UButton v-else label="Confirm Receipt" color="green" @click="confirmReceipt" />
+              <UButton v-else label="Confirm Receipt" color="success" @click="confirmReceipt" />
             </div>
           </div>
         </template>

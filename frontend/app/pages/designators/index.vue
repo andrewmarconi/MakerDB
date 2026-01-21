@@ -94,7 +94,7 @@ async function handleDelete() {
               <td class="py-3 px-4">{{ designator.name }}</td>
               <td class="py-3 px-4 text-right">
                 <div class="flex items-center justify-end gap-1">
-                  <UButton icon="i-heroicons-trash" size="xs" variant="ghost" color="red"
+                  <UButton icon="i-heroicons-trash" size="xs" variant="ghost" color="error"
                     @click="confirmDelete(designator)" />
                 </div>
               </td>
@@ -126,7 +126,7 @@ async function handleDelete() {
 
       <template #footer>
         <div class="flex items-center justify-end gap-3">
-          <UButton label="Cancel" color="gray" variant="ghost" @click="showDeleteModal = false" />
+          <UButton label="Cancel" color="neutral" variant="ghost" @click="showDeleteModal = false" />
           <UButton label="Delete" color="error" :loading="isDeleting" @click="handleDelete" />
         </div>
       </template>

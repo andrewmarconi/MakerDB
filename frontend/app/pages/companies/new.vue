@@ -71,7 +71,7 @@ async function handleSubmit() {
         <h1 class="text-2xl font-bold">Add New Company</h1>
         <p class="text-gray-500 dark:text-gray-400">Create a manufacturer or vendor.</p>
       </div>
-      <UButton icon="i-heroicons-x-mark" variant="ghost" color="gray" to="/companies" />
+      <UButton icon="i-heroicons-x-mark" variant="ghost" color="neutral" to="/companies" />
     </div>
 
     <UCard>
@@ -113,7 +113,7 @@ async function handleSubmit() {
                   <span v-if="contact.phone"> • {{ contact.phone }}</span>
                 </div>
               </div>
-              <UButton icon="i-heroicons-trash" variant="ghost" color="red" size="xs" @click="removeContact(index)" />
+              <UButton icon="i-heroicons-trash" variant="ghost" color="error" size="xs" @click="removeContact(index)" />
             </div>
           </div>
 
@@ -137,7 +137,7 @@ async function handleSubmit() {
     </UCard>
 
     <div class="flex items-center justify-end gap-3">
-      <UButton label="Cancel" color="gray" variant="ghost" to="/companies" />
+      <UButton label="Cancel" color="neutral" variant="ghost" to="/companies" />
       <UButton label="Create Company" icon="i-heroicons-plus" color="primary" :loading="isSubmitting"
         @click="handleSubmit" />
     </div>

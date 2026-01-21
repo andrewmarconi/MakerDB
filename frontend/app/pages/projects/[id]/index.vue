@@ -24,7 +24,7 @@ const tabItems = [
   { label: 'BOM Management', icon: 'i-heroicons-list-bullet', value: 'bom' },
   { label: 'Build History', icon: 'i-heroicons-wrench-screwdriver', value: 'build' },
   { label: 'Documentation', icon: 'i-heroicons-document-text', value: 'docs' }
-]
+] as any[]
 
 const searchQuery = ref('')
 const editingItem = ref<string | null>(null)
@@ -145,7 +145,7 @@ function closeAddModal() {
 
 async function addItem() {
   if (!addForm.value.partId) {
-    toast.add({ title: 'Please select a part', color: 'warn' })
+    toast.add({ title: 'Please select a part', color: 'warning' })
     return
   }
 
@@ -174,9 +174,9 @@ function selectPart(part: any) {
 }
 
 function getStatusColor(item: any) {
-  if (!item.part) return 'amber'
-  if (item.part?.stock_entries?.total_quantity >= item.quantity) return 'green'
-  return 'yellow'
+  if (!item.part) return 'warning'
+  if (item.part?.stock_entries?.total_quantity >= item.quantity) return 'success'
+  return 'warning'
 }
 </script>
 
@@ -184,11 +184,11 @@ function getStatusColor(item: any) {
   <div class="space-y-6" v-if="project">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-4">
-        <UButton variant="ghost" color="gray" icon="i-heroicons-arrow-left" to="/projects" />
+        <UButton variant="ghost" color="neutral" icon="i-heroicons-arrow-left" to="/projects" />
         <div>
           <h1 class="text-2xl font-bold flex items-center gap-2">
             {{ (project as any).name }}
-            <UBadge :color="(project as any).status === 'active' ? 'green' : (project as any).status === 'draft' ? 'amber' : 'gray'" size="sm">
+            <UBadge :color="(project as any).status === 'active' ? 'success' : (project as any).status === 'draft' ? 'warning' : 'neutral'" size="sm">
               {{ (project as any).status }}
             </UBadge>
           </h1>
@@ -200,14 +200,14 @@ function getStatusColor(item: any) {
         <UButton label="Import BOM" icon="i-heroicons-arrow-up-tray" color="primary" :to="`/projects/${projectId}/bom/import`" />
         <UDropdown-menu
           :items="[[{ label: 'Export BOM', icon: 'i-heroicons-arrow-down-tray' }, { label: 'Archive Project', icon: 'i-heroicons-archive-box' }]]">
-          <UButton variant="ghost" color="gray" icon="i-heroicons-ellipsis-horizontal" />
+          <UButton variant="ghost" color="neutral" icon="i-heroicons-ellipsis-horizontal" />
         </UDropdown-menu>
       </div>
     </div>
 
     <UTabs :items="tabItems" class="w-full">
-      <template #item="{ item }">
-        <div v-if="item.value === 'overview'" class="space-y-6">
+      <template #item="slotProps: any">
+        <div v-if="slotProps.item.value === 'overview'" class="space-y-6">
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <UCard>
               <div class="text-sm text-gray-500">BOM Items</div>
@@ -237,7 +237,7 @@ function getStatusColor(item: any) {
           </UCard>
         </div>
 
-        <div v-if="item.value === 'bom'" class="space-y-4">
+        <div v-if="slotProps.item.value === 'bom'" class="space-y-4">
           <UCard>
             <template #header>
               <div class="flex items-center justify-between">
@@ -245,7 +245,7 @@ function getStatusColor(item: any) {
                 <div class="flex items-center gap-2">
                   <UInput v-model="searchQuery" icon="i-heroicons-magnifying-glass" placeholder="Search..."
                     size="sm" class="w-64" />
-                  <UButton v-if="canEdit" label="Add Item" icon="i-heroicons-plus" variant="soft" color="gray" size="sm" @click="openAddModal" />
+                  <UButton v-if="canEdit" label="Add Item" icon="i-heroicons-plus" variant="soft" color="neutral" size="sm" @click="openAddModal" />
                 </div>
               </div>
             </template>
@@ -292,15 +292,15 @@ function getStatusColor(item: any) {
                     <td class="py-3 px-4 text-right">
                       <div class="flex items-center justify-end gap-1">
                         <template v-if="editingItem === item.id">
-                          <UButton icon="i-heroicons-check" size="xs" color="green" variant="ghost"
+                          <UButton icon="i-heroicons-check" size="xs" color="success" variant="ghost"
                             :loading="isSaving" @click="saveEdit(item)" />
-                          <UButton icon="i-heroicons-x-mark" size="xs" color="gray" variant="ghost"
+                          <UButton icon="i-heroicons-x-mark" size="xs" color="neutral" variant="ghost"
                             @click="cancelEdit" />
                         </template>
                         <template v-else>
-                          <UButton icon="i-heroicons-pencil" size="xs" variant="ghost" color="gray"
+                          <UButton icon="i-heroicons-pencil" size="xs" variant="ghost" color="neutral"
                             @click="startEdit(item)" />
-                          <UButton icon="i-heroicons-trash" size="xs" variant="ghost" color="red"
+                          <UButton icon="i-heroicons-trash" size="xs" variant="ghost" color="error"
                             @click="deleteItem(item)" />
                         </template>
                       </div>
@@ -318,7 +318,7 @@ function getStatusColor(item: any) {
           </UCard>
         </div>
 
-        <div v-if="item.value === 'build'" class="space-y-4">
+        <div v-if="slotProps.item.value === 'build'" class="space-y-4">
           <UCard>
             <div class="flex flex-col items-center justify-center p-12 text-gray-400">
               <UIcon name="i-heroicons-wrench-screwdriver" class="w-12 h-12 mb-2 opacity-50" />
@@ -327,7 +327,7 @@ function getStatusColor(item: any) {
           </UCard>
         </div>
 
-        <div v-if="item.value === 'docs'" class="space-y-4">
+        <div v-if="slotProps.item.value === 'docs'" class="space-y-4">
           <UCard>
             <div class="flex flex-col items-center justify-center p-12 text-gray-400">
               <UIcon name="i-heroicons-document-text" class="w-12 h-12 mb-2 opacity-50" />
@@ -382,7 +382,7 @@ function getStatusColor(item: any) {
 
       <template #footer>
         <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="gray" @click="showAddModal = false">Cancel</UButton>
+          <UButton variant="ghost" color="neutral" @click="showAddModal = false">Cancel</UButton>
           <UButton icon="i-heroicons-plus" :loading="isSaving" @click="addItem">Add Item</UButton>
         </div>
       </template>

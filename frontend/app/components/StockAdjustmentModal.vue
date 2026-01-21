@@ -136,7 +136,7 @@ watch(isOpen, (val) => {
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="text-lg font-semibold">Adjust Stock: {{ part.name }}</h3>
-            <UButton color="gray" variant="ghost" icon="i-heroicons-x-mark" @click="isOpen = false" />
+            <UButton color="neutral" variant="ghost" icon="i-heroicons-x-mark" @click="isOpen = false" />
           </div>
         </template>
 
@@ -183,9 +183,9 @@ watch(isOpen, (val) => {
 
         <template #footer>
           <div class="flex justify-end gap-3">
-            <UButton label="Cancel" color="gray" variant="ghost" @click="isOpen = false" />
+            <UButton label="Cancel" color="neutral" variant="ghost" @click="isOpen = false" />
             <UButton :label="adjustmentType === 'add' ? 'Add Stock' : adjustmentType === 'set' ? 'Set Stock' : 'Remove Stock'"
-              :color="adjustmentType === 'remove' ? 'red' : 'primary'" :loading="isSubmitting" :disabled="!locationId || quantity < 0"
+              :color="adjustmentType === 'remove' ? 'error' : 'primary'" :loading="isSubmitting" :disabled="!locationId || quantity < 0"
               @click="handleSubmit" />
           </div>
         </template>

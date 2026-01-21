@@ -1,0 +1,44 @@
+[
+    {
+        "name": "Five59 Labs",
+        "website": "https://five59.com",
+        "is_vendor": false,
+        "is_manufacturer": false
+    },
+    {
+        "name": "DigiKey",
+        "website": "https://www.digikey.com",
+        "is_vendor": true,
+        "is_manufacturer": false
+    },
+    {
+        "name": "Adafruit",
+        "website": "https://www.adafruit.com",
+        "is_vendor": true,
+        "is_manufacturer": true
+    },
+    {
+        "name": "Mouser",
+        "website": "https://www.mouser.com",
+        "is_vendor": true,
+        "is_manufacturer": false
+    },
+    {
+        "name": "Seeed Studio",
+        "website": "https://www.seeedstudio.com",
+        "is_vendor": true,
+        "is_manufacturer": true
+    },
+    {
+        "name": "Espressif",
+        "website": "https://www.espressif.com",
+        "is_vendor": false,
+        "is_manufacturer": true
+    },
+    {
+        "name": "Elegoo",
+        "website": "https://www.elegoo.com",
+        "is_vendor": true,
+        "is_manufacturer": true
+    }
+]

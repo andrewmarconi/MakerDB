@@ -31,7 +31,7 @@ const handleReceive = (items) => {
   <div class="space-y-6" v-if="order">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-4">
-        <UButton variant="ghost" color="gray" icon="i-heroicons-arrow-left" to="/purchasing" />
+        <UButton variant="ghost" color="neutral" icon="i-heroicons-arrow-left" to="/purchasing" />
         <div>
           <h1 class="text-2xl font-bold flex items-center gap-2">
             {{ order.id }}
@@ -45,7 +45,7 @@ const handleReceive = (items) => {
         <UButton label="Place Order" icon="i-heroicons-shopping-cart" color="primary" v-if="order.status === 'Open'" />
         <UDropdownMenu
           :items="[[{ label: 'Print Invoice', icon: 'i-heroicons-printer' }, { label: 'Cancel Order', icon: 'i-heroicons-x-circle' }]]">
-          <UButton variant="ghost" color="gray" icon="i-heroicons-ellipsis-horizontal" />
+          <UButton variant="ghost" color="neutral" icon="i-heroicons-ellipsis-horizontal" />
         </UDropdownMenu>
       </div>
     </div>

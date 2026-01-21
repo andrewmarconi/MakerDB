@@ -63,7 +63,7 @@ async function handleSubmit() {
         <h1 class="text-2xl font-bold">Create Project</h1>
         <p class="text-gray-500 dark:text-gray-400">Start a new project with a Bill of Materials.</p>
       </div>
-      <UButton icon="i-heroicons-x-mark" variant="ghost" color="gray" to="/projects" />
+      <UButton icon="i-heroicons-x-mark" variant="ghost" color="neutral" to="/projects" />
     </div>
 
     <UCard>
@@ -96,7 +96,7 @@ async function handleSubmit() {
     </UCard>
 
     <div class="flex items-center justify-end gap-3">
-      <UButton label="Cancel" color="gray" variant="ghost" to="/projects" />
+      <UButton label="Cancel" color="neutral" variant="ghost" to="/projects" />
       <UButton label="Create Project" icon="i-heroicons-plus" color="primary" :loading="isSubmitting"
         @click="handleSubmit" />
     </div>

@@ -27,6 +27,7 @@ const columnMapping = ref({
 })
 const isProcessing = ref(false)
 const error = ref<string | null>(null)
+const fileInput = ref<HTMLInputElement | null>(null)
 
 const availableColumns = computed(() => {
   if (parsedData.value.length === 0) return []
@@ -48,7 +49,7 @@ const unmatchedCount = computed(() => {
 function handleFileSelect(event: Event) {
   const target = event.target as HTMLInputElement
   if (target.files && target.files.length > 0) {
-    file.value = target.files[0]
+    file.value = target.files?.[0] || null
     parseFile()
   }
 }
@@ -60,8 +61,11 @@ async function parseFile() {
   error.value = null
 
   try {
-    const text = await file.value.text()
+    const text = await file.value!.text()
     const lines = text.trim().split('\n')
+    if (lines.length === 0 || !lines[0]) {
+      throw new Error('CSV file is empty or invalid')
+    }
     const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/['"]/g, ''))
 
     parsedData.value = lines.slice(1).map((line, index) => {
@@ -174,7 +178,7 @@ function reset() {
   <div class="max-w-4xl mx-auto space-y-6">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-4">
-        <UButton variant="ghost" color="gray" icon="i-heroicons-arrow-left" :to="`/projects/${projectId}`" />
+        <UButton variant="ghost" color="neutral" icon="i-heroicons-arrow-left" :to="`/projects/${projectId}`" />
         <div>
           <h1 class="text-2xl font-bold">Import BOM</h1>
           <p class="text-gray-500 dark:text-gray-400">Upload a CSV file to import into {{ (project as any)?.name }}</p>
@@ -188,11 +192,11 @@ function reset() {
     <UCard>
       <template #header>
         <div class="flex items-center gap-2">
-          <UBadge :color="step >= 1 ? 'primary' : 'gray'" variant="subtle">1. Upload</UBadge>
+          <UBadge :color="step >= 1 ? 'primary' : 'neutral'" variant="subtle">1. Upload</UBadge>
           <UIcon name="i-heroicons-chevron-right" class="w-4 h-4 text-gray-400" />
-          <UBadge :color="step >= 2 ? 'primary' : 'gray'" variant="subtle">2. Map Columns</UBadge>
+          <UBadge :color="step >= 2 ? 'primary' : 'neutral'" variant="subtle">2. Map Columns</UBadge>
           <UIcon name="i-heroicons-chevron-right" class="w-4 h-4 text-gray-400" />
-          <UBadge :color="step >= 3 ? 'primary' : 'gray'" variant="subtle">3. Review & Import</UBadge>
+          <UBadge :color="step >= 3 ? 'primary' : 'neutral'" variant="subtle">3. Review & Import</UBadge>
         </div>
       </template>
 
@@ -203,7 +207,7 @@ function reset() {
             <p class="text-lg font-medium mb-2">Upload your BOM CSV file</p>
             <p class="text-sm text-gray-500 mb-4">Supports CSV files exported from KiCad, Eagle, Altium, etc.</p>
             <UButton label="Select File" icon="i-heroicons-folder" color="primary"
-              @click="$refs.fileInput.click()" />
+              @click="fileInput?.click()" />
             <input ref="fileInput" type="file" accept=".csv,.txt" class="hidden" @change="handleFileSelect" />
           </div>
 
@@ -239,7 +243,7 @@ function reset() {
           </div>
 
           <div class="flex justify-between pt-4">
-            <UButton label="Back" color="gray" variant="ghost" @click="reset" />
+            <UButton label="Back" color="neutral" variant="ghost" @click="reset" />
             <UButton label="Preview & Match Parts" icon="i-heroicons-sparkles" color="primary"
               :loading="isProcessing" @click="previewAndMatch" />
           </div>
@@ -252,8 +256,8 @@ function reset() {
               <div class="text-sm text-green-600 dark:text-green-400">Matched Parts</div>
             </UCard>
             <UCard class="bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800">
-              <div class="text-2xl font-bold text-amber-600 dark:text-amber-400">{{ unmatchedCount }}</div>
-              <div class="text-sm text-amber-600 dark:text-amber-400">Unmatched Items</div>
+              <div class="text-2xl font-bold text-warning-600 dark:text-warning-400">{{ unmatchedCount }}</div>
+              <div class="text-sm text-warning-600 dark:text-warning-400">Unmatched Items</div>
             </UCard>
           </div>
 
@@ -274,8 +278,8 @@ function reset() {
                   <td class="py-2 px-3">{{ row[columnMapping.quantity] }}</td>
                   <td class="py-2 px-3 font-mono">{{ row[columnMapping.part_number] || '-' }}</td>
                   <td class="py-2 px-3">
-                    <UBadge v-if="row._matched" color="green" size="sm">Matched</UBadge>
-                    <UBadge v-else color="amber" size="sm">Unmatched</UBadge>
+                    <UBadge v-if="row._matched" color="success" size="sm">Matched</UBadge>
+                    <UBadge v-else color="warning" size="sm">Unmatched</UBadge>
                   </td>
                 </tr>
               </tbody>
@@ -287,7 +291,7 @@ function reset() {
           </p>
 
           <div class="flex justify-between pt-4">
-            <UButton label="Back" color="gray" variant="ghost" @click="step = 2" />
+            <UButton label="Back" color="neutral" variant="ghost" @click="step = 2" />
             <UButton label="Import BOM" icon="i-heroicons-arrow-down-tray" color="primary"
               :loading="isProcessing" @click="handleImport" />
           </div>

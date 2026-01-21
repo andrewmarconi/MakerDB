@@ -1,12 +1,7 @@
 <script setup lang="ts">
-interface FilterConfig {
-  key: string
-  label: string
-  type: 'select' | 'input' | 'date'
-  options?: { label: string; value: any }[]
-}
+import type { FilterConfig } from '#shared/types'
 
-interface Props {
+type Props = {
   filters: FilterConfig[]
   modelValue: Record<string, any>
 }

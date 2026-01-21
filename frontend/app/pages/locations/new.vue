@@ -11,7 +11,6 @@ useSeoMeta({
 const router = useRouter()
 
 // Mode selection
-type CreateMode = 'single' | 'row' | 'grid'
 const mode = ref<CreateMode>('single')
 
 const modeOptions = [
@@ -39,7 +38,6 @@ const singleForm = ref({
 })
 
 // Row mode form
-type RangeType = 'letters' | 'numbers'
 const rowForm = ref({
   prefix: '',
   rangeType: 'letters' as RangeType,
@@ -165,7 +163,7 @@ const isValid = computed(() => {
         <h1 class="text-2xl font-bold">Create Storage Location</h1>
         <p class="text-gray-500 dark:text-gray-400">Add new storage locations to organize your inventory.</p>
       </div>
-      <UButton icon="i-heroicons-x-mark" variant="ghost" color="gray" to="/locations" />
+      <UButton icon="i-heroicons-x-mark" variant="ghost" color="neutral" to="/locations" />
     </div>
 
     <!-- Mode Selection -->
@@ -358,7 +356,7 @@ const isValid = computed(() => {
 
     <!-- Actions -->
     <div class="flex items-center justify-end gap-3">
-      <UButton label="Cancel" color="gray" variant="ghost" to="/locations" />
+      <UButton label="Cancel" color="neutral" variant="ghost" to="/locations" />
       <UButton :label="mode === 'single' ? 'Create Location' : `Create ${mode === 'row' ? rowPreviewNames.length : gridPreviewNames.length} Locations`"
         color="primary" :loading="isSubmitting" :disabled="!isValid || isSubmitting" @click="handleSubmit" />
     </div>

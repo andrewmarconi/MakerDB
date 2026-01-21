@@ -1,10 +1,19 @@
 from django.contrib import admin
+from django.db.models import Sum
 from .models import Storage, Lot, Stock
 
 @admin.register(Storage)
 class StorageAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description')
+    list_display = ('name', 'total_parts', 'description')
     search_fields = ('name',)
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.annotate(_total_parts=Sum("stock_in_location__quantity"))
+
+    @admin.display(description="Total Parts")
+    def total_parts(self, obj):
+        return obj._total_parts or 0
 
 @admin.register(Lot)
 class LotAdmin(admin.ModelAdmin):

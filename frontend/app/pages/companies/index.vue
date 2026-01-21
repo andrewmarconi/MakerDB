@@ -10,14 +10,6 @@ useSeoMeta({
   description: 'Manage manufacturers and vendors.'
 })
 
-interface Company {
-  id: string
-  name: string
-  website: string | null
-  is_manufacturer: boolean
-  is_vendor: boolean
-  created_at: string
-}
 
 const columns: ColumnDef<Company>[] = [
   { accessorKey: 'name', header: 'Company Name' },
@@ -28,16 +20,12 @@ const columns: ColumnDef<Company>[] = [
 
 const cardFields = ['website', 'is_manufacturer', 'is_vendor', 'created_at']
 
-const { data, pending, error } = await useAsyncData(
+const { data, pending, error, refresh } = await useAsyncData(
   'companies',
   (_nuxtApp, { signal }) => $fetch<Company[]>('/db/companies/', { signal }),
 )
 
-const isLoading = computed(() => {
-  if (pending) return true
-  if (error) return true
-  return false
-})
+const isLoading = computed(() => pending.value || !!error.value)
 
 const showDeleteModal = ref(false)
 const companyToDelete = ref<Company | null>(null)
@@ -102,15 +90,14 @@ const cardActions = computed(() => [
       />
     </template>
     <DataTable 
-      v-if="data"
-      :data="data as Company[]" 
+      :data="(data || []) as Company[]" 
       :columns="columns" 
       :card-fields="cardFields" 
       :card-actions="cardActions"
       searchable
       clickable-column="name" 
       :default-sort="{ id: 'created_at', desc: true }" 
-      :loading="!isLoading"
+      :loading="isLoading"
       :on-row-click="(item) => ({ path: `/companies/${item.id}` })">
       <template #is_manufacturer-cell="{ row }">
         <UIcon 

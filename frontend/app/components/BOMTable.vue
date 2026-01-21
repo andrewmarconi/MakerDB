@@ -8,12 +8,12 @@ interface Props {
 defineProps<Props>()
 
 const columns: ColumnDef<any>[] = [
-  { id: 'designators', key: 'designators', label: 'Designators', enableSorting: false },
-  { id: 'quantity', key: 'quantity', label: 'Qty' },
-  { id: 'mpn', key: 'mpn', label: 'MPN' },
-  { id: 'match', key: 'match', label: 'Matched Part' },
-  { id: 'status', key: 'status', label: 'Status' },
-  { id: 'actions', key: 'actions', label: '', enableSorting: false }
+  { id: 'designators', accessorKey: 'designators', header: 'Designators', enableSorting: false },
+  { id: 'quantity', accessorKey: 'quantity', header: 'Qty' },
+  { id: 'mpn', accessorKey: 'mpn', header: 'MPN' },
+  { id: 'match', accessorKey: 'match', header: 'Matched Part' },
+  { id: 'status', accessorKey: 'status', header: 'Status' },
+  { id: 'actions', accessorKey: 'actions', header: '', enableSorting: false }
 ]
 
 const cardFields = ['quantity', 'mpn', 'status']
@@ -34,14 +34,14 @@ const cardFields = ['quantity', 'mpn', 'status']
         v-else
         label="Match Part"
         variant="soft"
-        color="orange"
+        color="warning"
         size="xs"
         icon="i-heroicons-link"
       />
     </template>
 
     <template #status-cell="{ row }">
-      <UBadge :color="row.matchedPart ? 'green' : 'red'" variant="subtle" size="xs">
+      <UBadge :color="row.matchedPart ? 'success' : 'error'" variant="subtle" size="xs">
         {{ row.matchedPart ? 'Matched' : 'Unmatched' }}
       </UBadge>
     </template>
@@ -51,7 +51,7 @@ const cardFields = ['quantity', 'mpn', 'status']
         <UDropdownMenu
           :items="[[{ label: 'Set Substitute', icon: 'i-heroicons-arrow-path' }, { label: 'Ignore Line', icon: 'i-heroicons-eye-slash' }]]"
         >
-          <UButton variant="ghost" color="gray" icon="i-heroicons-ellipsis-horizontal" />
+          <UButton variant="ghost" color="neutral" icon="i-heroicons-ellipsis-horizontal" />
         </UDropdownMenu>
       </div>
     </template>

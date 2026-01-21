@@ -10,15 +10,8 @@ useSeoMeta({
   description: 'Browse and manage your storage hierarchy.'
 })
 
-interface Location {
-  id: string
-  name: string
-  description: string | null
-  children_count: number
-  created_at: string
-}
 
-const columns: ColumnDef<Location>[] = [
+const columns: ColumnDef<InventoryLocation>[] = [
   { accessorKey: 'name', header: 'Location Name' },
   { accessorKey: 'description', header: 'Description' },
   { accessorKey: 'children_count', header: 'Sub-locations' },
@@ -29,17 +22,13 @@ const cardFields = ['description', 'children_count', 'created_at']
 
 const { data, pending, error, refresh } = await useAsyncData(
   'locations',
-  (_nuxtApp, { signal }) => $fetch<Location[]>('/db/inventory/locations/', { signal }),
+  (_nuxtApp, { signal }) => $fetch<InventoryLocation[]>('/db/inventory/locations/', { signal }),
 )
 
-const isLoading = computed(() => {
-  if (pending) return true
-  if (error) return true
-  return false
-})
+const isLoading = computed(() => pending.value || !!error.value)
 
 const showDeleteModal = ref(false)
-const locationToDelete = ref<Location | null>(null)
+const locationToDelete = ref<InventoryLocation | null>(null)
 const isDeleting = ref(false)
 const deleteError = ref<string | null>(null)
 
@@ -67,13 +56,13 @@ const cardActions = computed(() => [
   {
     label: 'Edit',
     icon: 'i-heroicons-pencil-square',
-    onClick: (item: Location) => navigateTo(`/locations/${item.id}/edit`)
+    onClick: (item: InventoryLocation) => navigateTo(`/locations/${item.id}/edit`)
   },
   {
     label: 'Delete',
     icon: 'i-heroicons-trash',
     variant: 'destructive' as const,
-    onClick: (item: Location) => {
+    onClick: (item: InventoryLocation) => {
       locationToDelete.value = item
       showDeleteModal.value = true
     }
@@ -85,7 +74,7 @@ const cardActions = computed(() => [
   <div class="space-y-6">
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold">Storage Locations</h1>
+        <h1 class="text-2xl font-bold">Storage InventoryLocations</h1>
         <p class="text-gray-500 dark:text-gray-400">Browse and manage your storage hierarchy.</p>
       </div>
       <div class="flex items-center gap-2">
@@ -101,19 +90,18 @@ const cardActions = computed(() => [
       />
     </template>
     <DataTable 
-      v-if="data"
-      :data="data as Location[]" 
+      :data="(data || []) as InventoryLocation[]" 
       :columns="columns" 
       :card-fields="cardFields" 
       :card-actions="cardActions"
       searchable
       clickable-column="name" 
       :default-sort="{ id: 'name', desc: false }" 
-      :loading="!isLoading"
+      :loading="isLoading"
       :on-row-click="(item) => ({ path: `/locations/${item.id}` })">
       <template #children_count-cell="{ row }">
         <div class="flex items-center gap-1">
-          <UIcon name="i-heroicons-folder" class="w-4 h-4 text-amber-500" />
+          <UIcon name="i-heroicons-folder" class="w-4 h-4 text-warning" />
           <span>{{ row.children_count }} sub-locations</span>
         </div>
       </template>
@@ -134,7 +122,7 @@ const cardActions = computed(() => [
 
       <template #footer>
         <div class="flex items-center justify-end gap-3">
-          <UButton label="Cancel" color="gray" variant="ghost" @click="showDeleteModal = false" />
+          <UButton label="Cancel" color="neutral" variant="ghost" @click="showDeleteModal = false" />
           <UButton label="Delete" color="error" :loading="isDeleting" @click="handleDelete" />
         </div>
       </template>

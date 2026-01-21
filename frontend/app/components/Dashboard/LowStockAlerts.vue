@@ -16,7 +16,7 @@ const { data: alerts } = await useApiFetch('/inventory/low-stock')
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-2">
             <span class="text-sm font-medium truncate">{{ alert.name }}</span>
-            <UBadge :color="alert.status === 'Critical' ? 'red' : 'orange'" size="xs" variant="subtle">
+            <UBadge :color="alert.status === 'Critical' ? 'error' : 'warning'" size="xs" variant="subtle">
               {{ alert.status }}
             </UBadge>
           </div>
@@ -32,7 +32,7 @@ const { data: alerts } = await useApiFetch('/inventory/low-stock')
     </div>
 
     <template #footer>
-      <UButton label="View all alerts" variant="link" color="gray" size="sm" block />
+      <UButton label="View all alerts" variant="link" color="neutral" size="sm" block />
     </template>
   </UCard>
 </template>

@@ -17,11 +17,11 @@ const { data: company, refresh } = await useApiFetch(`/core/companies/${companyI
 
 function getTypeBadge(company: any) {
   if (company.is_manufacturer && company.is_vendor) {
-    return { label: 'Both', color: 'purple' as const }
+    return { label: 'Both', color: 'primary' as const }
   } else if (company.is_manufacturer) {
-    return { label: 'Manufacturer', color: 'blue' as const }
+    return { label: 'Manufacturer', color: 'info' as const }
   } else {
-    return { label: 'Vendor', color: 'green' as const }
+    return { label: 'Vendor', color: 'success' as const }
   }
 }
 </script>
@@ -30,7 +30,7 @@ function getTypeBadge(company: any) {
   <div v-if="company" class="max-w-4xl mx-auto space-y-6">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-4">
-        <UButton variant="ghost" color="gray" icon="i-heroicons-arrow-left" to="/companies" />
+        <UButton variant="ghost" color="neutral" icon="i-heroicons-arrow-left" to="/companies" />
         <div>
           <h1 class="text-2xl font-bold">{{ (company as any).name }}</h1>
           <div class="flex items-center gap-2 mt-1">

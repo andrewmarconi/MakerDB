@@ -25,7 +25,7 @@ class PartAdmin(admin.ModelAdmin):
 
     def display_total_stock(self, obj):
         from django.db.models import Sum, Q
-        return obj.stock_entries.aggregate(total=Sum("quantity", filter=Q(stock_entries__status__isnull=True)))["total"] or 0
+        return obj.stock_entries.aggregate(total=Sum("quantity", filter=Q(status__isnull=True)))["total"] or 0
 
     display_total_stock.short_description = "Total Stock"
     search_fields = ("name", "mpn", "description")

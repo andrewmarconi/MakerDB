@@ -1,56 +1,13 @@
 <script setup lang="ts" generic="T">
 import { useStorage } from '@vueuse/core'
-import type { ColumnDef } from '@nuxt/ui'
+import { useSlots } from 'vue'
+import type { ColumnDef } from '@tanstack/vue-table'
 import type { DropdownMenuItem } from '@nuxt/ui'
+import type { DataTableProps, ActionConfig } from '#shared/types'
 
-interface ActionConfig {
-  label: string
-  icon: string
-  onClick: (row: any) => void
-  variant?: 'default' | 'destructive'
-}
+const slots = useSlots()
 
-interface Props<T> {
-  data: T[]
-  columns: ColumnDef<T>[]
-  viewMode?: 'table' | 'grid'
-  storageKey?: string
-  cardFields: string[]
-  cardActions?: ActionConfig[]
-  tableActions?: ActionConfig[]
-  defaultSort?: { id: string; desc: boolean }
-  searchable?: boolean
-  filterUI?: any
-  showColumnToggle?: boolean
-  paginatable?: boolean
-  itemsPerPage?: number
-  clickableColumn?: string
-  onRowClick?: (row: T) => void | { path: string }
-  emptyState?: string | any
-  loading?: boolean
-}
-
-interface Props<T> {
-  data: T[]
-  columns: ColumnDef<T>[]
-  viewMode?: 'table' | 'grid'
-  storageKey?: string
-  cardFields: string[]
-  cardActions?: ActionConfig[]
-  tableActions?: ActionConfig[]
-  defaultSort?: { id: string; desc: boolean }
-  searchable?: boolean
-  filterUI?: any
-  showColumnToggle?: boolean
-  paginatable?: boolean
-  itemsPerPage?: number
-  clickableColumn?: string
-  onRowClick?: (row: T) => void | { path: string }
-  emptyState?: string | any
-  loading?: boolean
-}
-
-const props = withDefaults(defineProps<Props<T>>(), {
+const props = withDefaults(defineProps<DataTableProps<T>>(), {
   viewMode: 'table',
   showColumnToggle: true,
   paginatable: true,
@@ -62,15 +19,23 @@ const emit = defineEmits<{
   'row-click': [row: T]
 }>()
 
+defineSlots<{
+  [K: `${string}-cell`]: (props: { row: any, getValue: () => any }) => any;
+  'card-body'?: (props: { item: T }) => any;
+  'card-footer'?: (props: { item: T }) => any;
+}>()
+
 const route = useRoute()
 const storageKey = computed(() => props.storageKey || route.path.replace(/\//g, '-'))
 
 const search = ref('')
 
 const viewMode = useStorage(`datatable-${storageKey.value}-viewMode`, props.viewMode)
+watch(() => props.viewMode, (val) => {
+  viewMode.value = val
+})
 
-const columnVisibility = useStorage(`datatable-${storageKey.value}-columns`, {})
-
+const columnVisibility = useStorage<Record<string, boolean>>(`datatable-${storageKey.value}-columns`, {})
 const page = ref(1)
 
 const visibleColumns = computed(() => {
@@ -162,27 +127,27 @@ function getDetailRouteFromItem(item: T) {
 }
 
 function getStatusColor(status: string) {
-  if (!status) return 'gray'
+  if (!status) return 'neutral'
   const statusLower = status.toLowerCase()
-  const colorMap: Record<string, string> = {
-    active: 'green',
-    draft: 'amber',
-    completed: 'green',
-    archived: 'gray',
-    open: 'blue',
-    ordered: 'yellow',
-    received: 'green',
-    linked: 'blue',
-    local: 'orange',
-    meta: 'purple',
-    subassembly: 'green',
-    'sub-assembly': 'green',
-    in_stock: 'green',
-    low_stock: 'orange',
-    out_of_stock: 'red',
-    both: 'purple'
+  const colorMap: Record<string, "success" | "warning" | "info" | "error" | "neutral" | "primary"> = {
+    active: 'success',
+    draft: 'warning',
+    completed: 'success',
+    archived: 'neutral',
+    open: 'info',
+    ordered: 'warning',
+    received: 'success',
+    linked: 'info',
+    local: 'warning',
+    meta: 'primary',
+    subassembly: 'success',
+    'sub-assembly': 'success',
+    in_stock: 'success',
+    low_stock: 'warning',
+    out_of_stock: 'error',
+    both: 'primary'
   }
-  return colorMap[statusLower] || 'gray'
+  return colorMap[statusLower] || 'neutral'
 }
 
 const columnToggleItems = computed<DropdownMenuItem[]>(() => {
@@ -213,14 +178,14 @@ const columnToggleItems = computed<DropdownMenuItem[]>(() => {
         />
         <div class="flex items-center gap-2">
           <UButton
-            :color="viewMode === 'table' ? 'primary' : 'gray'"
+            :color="viewMode === 'table' ? 'primary' : 'neutral'"
             :variant="viewMode === 'table' ? 'solid' : 'ghost'"
             icon="i-heroicons-table-cells"
             size="sm"
             @click="viewMode = 'table'"
           />
           <UButton
-            :color="viewMode === 'grid' ? 'primary' : 'gray'"
+            :color="viewMode === 'grid' ? 'primary' : 'neutral'"
             :variant="viewMode === 'grid' ? 'solid' : 'ghost'"
             icon="i-heroicons-squares-2x2"
             size="sm"
@@ -228,7 +193,7 @@ const columnToggleItems = computed<DropdownMenuItem[]>(() => {
           />
           <UDropdownMenu v-if="showColumnToggle" :items="columnToggleItems">
             <template #default>
-              <UButton icon="i-heroicons-view-columns" color="gray" variant="ghost" />
+              <UButton icon="i-heroicons-view-columns" color="neutral" variant="ghost" />
             </template>
           </UDropdownMenu>
         </div>
@@ -236,8 +201,7 @@ const columnToggleItems = computed<DropdownMenuItem[]>(() => {
     </UCard>
 
     <USkeleton v-if="loading" class="h-96" />
-
-    <div v-else-if="paginatedData.length === 0" class="text-center py-12 text-gray-500">
+    <div v-else-if="!loading && paginatedData.length === 0" class="text-center py-12 text-gray-500">
       <UIcon name="i-heroicons-folder-open" class="w-12 h-12 mx-auto mb-4 opacity-50" />
       <p>No items found.</p>
     </div>
@@ -250,22 +214,20 @@ const columnToggleItems = computed<DropdownMenuItem[]>(() => {
         class="w-full"
         @row-click="handleRowClick"
       >
-        <template v-for="col in visibleColumns" :key="col.id || col.accessorKey" #[getColumnSlotKey(col)]="{ row, column, getValue }">
-          <slot
-            :name="getColumnSlotKey(col)"
-            :row="row"
-            :column="column"
-            :getValue="getValue"
-          >
+        <template v-for="col in visibleColumns" :key="col.id || col.accessorKey" #[getColumnSlotKey(col)]="slotProps">
+          <template v-if="slots[getColumnSlotKey(col)]">
+            <component :is="() => slots[getColumnSlotKey(col)]!(slotProps)" />
+          </template>
+          <template v-else>
             <NuxtLink
-              v-if="getColumnSlotKey(col).replace('-cell', '') === clickableColumn && getDetailRoute(row)"
-              :to="getDetailRoute(row)"
+              v-if="getColumnSlotKey(col).replace('-cell', '') === clickableColumn && getDetailRoute(slotProps.row)"
+              :to="getDetailRoute(slotProps.row)!"
               class="font-medium text-primary-500 hover:underline"
             >
-              {{ getValue() }}
+              {{ slotProps.getValue() }}
             </NuxtLink>
-            <span v-else>{{ getValue() }}</span>
-          </slot>
+            <span v-else>{{ slotProps.getValue() }}</span>
+          </template>
         </template>
       </UTable>
 
@@ -274,12 +236,12 @@ const columnToggleItems = computed<DropdownMenuItem[]>(() => {
           <template #header>
             <NuxtLink
               v-if="clickableColumn && getDetailRouteFromItem(item)"
-              :to="getDetailRouteFromItem(item)"
+              :to="getDetailRouteFromItem(item)!"
               class="font-medium text-primary-500 hover:underline"
             >
               {{ (item as any)[clickableColumn] }}
             </NuxtLink>
-            <span v-else class="font-medium">{{ (item as any)[clickableColumn] }}</span>
+            <span v-else class="font-medium">{{ (item as any)[clickableColumn!] }}</span>
           </template>
 
           <div class="space-y-2">
@@ -308,7 +270,7 @@ const columnToggleItems = computed<DropdownMenuItem[]>(() => {
                 onClick: () => action.onClick(item)
               }))"
             >
-              <UButton icon="i-heroicons-ellipsis-horizontal" variant="ghost" color="gray" />
+              <UButton icon="i-heroicons-ellipsis-horizontal" variant="ghost" color="neutral" />
             </UDropdownMenu>
             <slot v-else name="card-footer" :item="item" />
           </template>

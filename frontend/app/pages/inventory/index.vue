@@ -10,15 +10,6 @@ useSeoMeta({
   description: 'Manage your parts and track stock levels.'
 })
 
-interface Part {
-  id: string
-  name: string
-  mpn: string
-  part_type: string
-  total_stock: number
-  manufacturer?: { name: string }
-}
-
 const columns: ColumnDef<Part>[] = [
   { accessorKey: 'name', header: 'Name' },
   { accessorKey: 'mpn', header: 'MPN' },
@@ -42,7 +33,7 @@ async function fetchParts() {
     let url = `/db/parts/?skip=${skip}&limit=${ITEMS_PER_PAGE}`
 
     if (sorting.value.length > 0) {
-      const sort = sorting.value[0]
+      const sort = sorting.value[0]!
       const order = sort.desc ? '-' : ''
       url += `&ordering=${order}${sort.id}`
     }
@@ -78,29 +69,11 @@ onMounted(fetchParts)
       </div>
       <div class="flex items-center gap-2">
         <UButton icon="i-heroicons-plus" label="Add Part" color="primary" to="/inventory/new" />
-        <UButton icon="i-heroicons-arrow-up-tray" label="Import" variant="ghost" color="gray" />
+        <UButton icon="i-heroicons-arrow-up-tray" label="Import" variant="ghost" color="neutral" />
       </div>
     </div>
 
-    <template v-if="pending">
-      <UCard>
-        <div class="flex justify-center py-12">
-          <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-gray-400" />
-        </div>
-      </UCard>
-    </template>
-
-    <template v-else-if="!parts || parts.length === 0">
-      <UCard>
-        <div class="text-center py-12 text-gray-500">
-          <UIcon name="i-heroicons-circle-stack" class="w-12 h-12 mx-auto mb-4 opacity-50" />
-          <p>No parts found.</p>
-        </div>
-      </UCard>
-    </template>
-
     <DataTable
-      v-else
       :data="parts as Part[]"
       :columns="columns"
       :card-fields="cardFields"
@@ -112,16 +85,16 @@ onMounted(fetchParts)
     >
       <template #part_type-cell="{ row }">
         <UBadge
-          :color="row.part_type === 'local' ? 'gray' : row.part_type === 'linked' ? 'blue' : row.part_type === 'meta' ? 'purple' : 'green'"
+          :color="row.original.part_type === 'local' ? 'warning' : row.original.part_type === 'linked' ? 'info' : row.original.part_type === 'meta' ? 'primary' : 'success'"
           variant="subtle"
           size="sm"
         >
-          {{ row.part_type }}
+          {{ row.original.part_type }}
         </UBadge>
       </template>
 
       <template #total_stock-cell="{ row }">
-        <div class="font-mono">{{ row.total_stock }}</div>
+        <div class="font-mono">{{ row.original.total_stock ?? 0 }}</div>
       </template>
     </DataTable>
 

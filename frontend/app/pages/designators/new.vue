@@ -55,7 +55,7 @@ async function handleSubmit() {
         <h1 class="text-2xl font-bold">Add New Designator</h1>
         <p class="text-gray-500 dark:text-gray-400">Create a component designator prefix.</p>
       </div>
-      <UButton icon="i-heroicons-x-mark" variant="ghost" color="gray" to="/designators" />
+      <UButton icon="i-heroicons-x-mark" variant="ghost" color="neutral" to="/designators" />
     </div>
 
     <UCard>
@@ -74,7 +74,7 @@ async function handleSubmit() {
     </UCard>
 
     <div class="flex items-center justify-end gap-3">
-      <UButton label="Cancel" color="gray" variant="ghost" to="/designators" />
+      <UButton label="Cancel" color="neutral" variant="ghost" to="/designators" />
       <UButton label="Create Designator" icon="i-heroicons-plus" color="primary" :loading="isSubmitting"
         @click="handleSubmit" />
     </div>

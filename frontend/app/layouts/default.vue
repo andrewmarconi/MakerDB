@@ -11,7 +11,7 @@
       <UNavigationMenu :items="links" orientation="vertical" class="w-full" />
 
       <template #footer>
-        <UButton variant="ghost" color="gray" icon="i-heroicons-cog-6-tooth" block class="justify-start px-2" />
+        <UButton variant="ghost" color="neutral" icon="i-heroicons-cog-6-tooth" block class="justify-start px-2" />
       </template>
     </UDashboardSidebar>
 

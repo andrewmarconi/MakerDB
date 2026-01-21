@@ -12,8 +12,10 @@ export default defineNuxtConfig({
   },
 
   app: {
-    icon: {
-      favicon: 'favicon.png'
+    head: {
+      link: [
+        { rel: 'icon', type: 'image/png', href: '/favicon.png' }
+      ]
     }
   },
 

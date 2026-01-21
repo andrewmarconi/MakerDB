@@ -10,14 +10,6 @@ useSeoMeta({
   description: 'Track your component orders and manage supplier relationships.'
 })
 
-interface Order {
-  id: string
-  order_id: string
-  vendor: { name: string }
-  status: string
-  total: number
-  date: string
-}
 
 const columns: ColumnDef<Order>[] = [
   { accessorKey: 'order_id', header: 'Order ID' },
@@ -34,11 +26,7 @@ const { data, pending, error } = await useAsyncData(
   (_nuxtApp, { signal }) => $fetch<Order[]>('/db/procurement/orders/', { signal }),
 )
 
-const isLoading = computed(() => {
-  if (pending) return true;
-  if (error) return true;
-  return false;
-})
+const isLoading = computed(() => pending.value || !!error.value)
 </script>
 
 <template>
@@ -67,7 +55,7 @@ const isLoading = computed(() => {
       :card-fields="cardFields" 
       searchable
       clickable-column="order_id" 
-      :loading="!isLoading"
+      :loading="isLoading"
       :on-row-click="(item) => ({ path: `/purchasing/${item.id}` })">
       <template #status-cell="{ row }">
         <StatusBadge :status="row.original.status" />

@@ -84,13 +84,13 @@ async function handleDelete() {
   <div v-if="project" class="max-w-3xl mx-auto space-y-6">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-4">
-        <UButton variant="ghost" color="gray" icon="i-heroicons-arrow-left" :to="`/projects/${projectId}`" />
+        <UButton variant="ghost" color="neutral" icon="i-heroicons-arrow-left" :to="`/projects/${projectId}`" />
         <div>
           <h1 class="text-2xl font-bold">Edit Project</h1>
           <p class="text-gray-500 dark:text-gray-400">Update project details.</p>
         </div>
       </div>
-      <UButton icon="i-heroicons-trash" label="Delete" variant="ghost" color="red" @click="handleDelete" />
+      <UButton icon="i-heroicons-trash" label="Delete" variant="ghost" color="error" @click="handleDelete" />
     </div>
 
     <UCard>
@@ -123,7 +123,7 @@ async function handleDelete() {
     </UCard>
 
     <div class="flex items-center justify-end gap-3">
-      <UButton label="Cancel" color="gray" variant="ghost" :to="`/projects/${projectId}`" />
+      <UButton label="Cancel" color="neutral" variant="ghost" :to="`/projects/${projectId}`" />
       <UButton label="Save Changes" icon="i-heroicons-check" color="primary" :loading="isSubmitting"
         @click="handleSubmit" />
     </div>

@@ -1,13 +1,6 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
-
-interface Attachment {
-  id: string
-  filename: string
-  content_type: string
-  size: number
-  created_at: string
-}
+import type { Attachment } from '#shared/types'
 
 const props = defineProps({
   attachments: {
@@ -101,6 +94,11 @@ async function handleDelete(attachment: Attachment) {
   }
 }
 
+function onFileChange(e: Event) {
+  const target = e.target as HTMLInputElement
+  handleFileUpload(target.files)
+}
+
 function handleDrop(e: DragEvent) {
   isDragging.value = false
   handleFileUpload(e.dataTransfer?.files || null)
@@ -126,7 +124,7 @@ function closePreview() {
     </div>
 
     <input ref="fileInputRef" type="file" multiple class="hidden" accept="*"
-      @change="handleFileUpload($event.target.files)" />
+      @change="onFileChange" />
 
     <div v-if="partId" @dragover.prevent="isDragging = true" @dragleave.prevent="isDragging = false"
       @drop.prevent="handleDrop"
@@ -152,11 +150,11 @@ function closePreview() {
             <div class="text-xs text-gray-500">{{ formatFileSize(file.size) }}</div>
           </div>
           <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <UButton v-if="isPreviewable(file.content_type)" icon="i-heroicons-eye" variant="ghost" color="gray"
-              size="xs" @click="openPreview(file)" />
-            <UButton icon="i-heroicons-arrow-down-tray" variant="ghost" color="gray" size="xs"
-              @click="navigateTo(`/db/attachments/${file.id}/download`, { external: true })" />
-            <UButton icon="i-heroicons-trash" variant="ghost" color="red" size="xs" @click="handleDelete(file)" />
+            <UButton v-if="isPreviewable(file.content_type)" icon="i-heroicons-eye" variant="ghost" color="neutral"
+               size="xs" @click="openPreview(file)" />
+            <UButton icon="i-heroicons-arrow-down-tray" variant="ghost" color="neutral" size="xs"
+               @click="navigateTo(`/db/attachments/${file.id}/download`, { external: true })" />
+            <UButton icon="i-heroicons-trash" variant="ghost" color="error" size="xs" @click="handleDelete(file)" />
           </div>
         </div>
       </UCard>
@@ -173,7 +171,7 @@ function closePreview() {
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="font-semibold truncate">{{ previewAttachment.filename }}</h3>
-            <UButton color="gray" variant="ghost" icon="i-heroicons-x-mark" @click="closePreview" />
+            <UButton color="neutral" variant="ghost" icon="i-heroicons-x-mark" @click="closePreview" />
           </div>
         </template>
 

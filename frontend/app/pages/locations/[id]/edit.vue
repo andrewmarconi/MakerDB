@@ -106,7 +106,7 @@ const isValid = computed(() => form.value.name.trim().length > 0)
         <h1 class="text-2xl font-bold">Edit Location</h1>
         <p class="text-gray-500 dark:text-gray-400">Update storage location details.</p>
       </div>
-      <UButton icon="i-heroicons-x-mark" variant="ghost" color="gray" to="/locations" />
+      <UButton icon="i-heroicons-x-mark" variant="ghost" color="neutral" to="/locations" />
     </div>
 
     <!-- Fetch Error -->
@@ -139,7 +139,7 @@ const isValid = computed(() => form.value.name.trim().length > 0)
             @click="showDeleteModal = true" />
 
           <div class="flex items-center gap-3">
-            <UButton label="Cancel" color="gray" variant="ghost" to="/locations" />
+            <UButton label="Cancel" color="neutral" variant="ghost" to="/locations" />
             <UButton label="Save Changes" color="primary" :loading="isSubmitting" :disabled="!isValid || isSubmitting"
               @click="handleSubmit" />
           </div>
@@ -162,7 +162,7 @@ const isValid = computed(() => form.value.name.trim().length > 0)
     <UModal v-model:open="showDeleteModal" title="Delete Location" description="Are you sure you want to delete this location? This action cannot be undone.">
       <template #footer>
         <div class="flex items-center justify-end gap-3">
-          <UButton label="Cancel" color="gray" variant="ghost" @click="showDeleteModal = false" />
+          <UButton label="Cancel" color="neutral" variant="ghost" @click="showDeleteModal = false" />
           <UButton label="Delete" color="error" :loading="isDeleting" @click="handleDelete" />
         </div>
       </template>

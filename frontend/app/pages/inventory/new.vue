@@ -20,7 +20,7 @@ const tabs = [
   { key: 'stock', label: 'Initial Stock', icon: 'i-heroicons-circle-stack' },
   { key: 'attachments', label: 'Attachments', icon: 'i-heroicons-paper-clip' }
 ]
-const activeTab = ref(tabs[0].key)
+const activeTab = ref(tabs[0]!.key)
 
 const partTypes = [
   { label: 'Linked', value: 'linked', description: 'Part with manufacturer info (MPN, datasheet)' },
@@ -163,16 +163,17 @@ async function handleSubmit() {
       )
     }
 
-    const partResponse = await useApiFetch('/parts/', {
+    const { data: partResponse } = await useApiFetch('/parts/', {
       method: 'POST',
       body: payload
     })
+    const partData = partResponse.value as any
 
-    if (partResponse.value && form.value.initial_stock.quantity > 0 && form.value.initial_stock.storage_id) {
+    if (partData && form.value.initial_stock.quantity > 0 && form.value.initial_stock.storage_id) {
       await useApiFetch('/inventory/stock', {
         method: 'POST',
         body: {
-          part_id: (partResponse.value as any).id,
+          part_id: partData.id,
           storage_id: form.value.initial_stock.storage_id,
           quantity: form.value.initial_stock.quantity,
           price_unit: form.value.initial_stock.price_unit,
@@ -202,7 +203,7 @@ function setActiveTab(tab: any) {
         <h1 class="text-2xl font-bold">Add New Part</h1>
         <p class="text-gray-500 dark:text-gray-400">Create a new part in your inventory.</p>
       </div>
-      <UButton icon="i-heroicons-x-mark" variant="ghost" color="gray" to="/inventory" />
+      <UButton icon="i-heroicons-x-mark" variant="ghost" color="neutral" to="/inventory" />
     </div>
 
     <UCard>
@@ -288,7 +289,7 @@ function setActiveTab(tab: any) {
           <div class="space-y-4">
             <div class="flex items-center justify-between">
               <h3 class="font-medium">Custom Fields</h3>
-              <UButton icon="i-heroicons-plus" label="Add Field" variant="soft" color="gray" size="sm"
+              <UButton icon="i-heroicons-plus" label="Add Field" variant="soft" color="neutral" size="sm"
                 @click="addCustomField" />
             </div>
 
@@ -296,7 +297,7 @@ function setActiveTab(tab: any) {
               <div v-for="key in customFieldKeys" :key="key" class="flex gap-3">
                 <UInput v-model="customFieldValues[key]" placeholder="Field name" class="flex-1" />
                 <UInput v-model="customFieldValues[key]" placeholder="Value" class="flex-1" />
-                <UButton icon="i-heroicons-trash" variant="ghost" color="red" size="xs"
+                <UButton icon="i-heroicons-trash" variant="ghost" color="error" size="xs"
                   @click="removeCustomField(key)" />
               </div>
             </div>
@@ -362,14 +363,14 @@ function setActiveTab(tab: any) {
     </UCard>
 
     <div class="flex items-center justify-between">
-      <UButton v-if="activeTab !== 'basic'" label="Back" icon="i-heroicons-arrow-left" variant="ghost" color="gray"
-        @click="() => { const idx = tabs.findIndex(t => t.key === activeTab); if (idx > 0) activeTab = tabs[idx - 1].key }" />
+      <UButton v-if="activeTab !== 'basic'" label="Back" icon="i-heroicons-arrow-left" variant="ghost" color="neutral"
+        @click="() => { const idx = tabs.findIndex(t => t.key === activeTab); if (idx > 0) activeTab = tabs[idx - 1]!.key }" />
       <div v-else></div>
 
       <div class="flex gap-3">
-        <UButton label="Cancel" color="gray" variant="ghost" to="/inventory" />
+        <UButton label="Cancel" color="neutral" variant="ghost" to="/inventory" />
         <UButton v-if="activeTab !== 'attachments'" label="Next" icon="i-heroicons-arrow-right" icon-end color="primary"
-          @click="() => { const idx = tabs.findIndex(t => t.key === activeTab); if (idx < tabs.length - 1) activeTab = tabs[idx + 1].key }" />
+          @click="() => { const idx = tabs.findIndex(t => t.key === activeTab); if (idx < tabs.length - 1) activeTab = tabs[idx + 1]!.key }" />
         <UButton v-else label="Create Part" icon="i-heroicons-plus" color="primary" :loading="isSubmitting"
           @click="handleSubmit" />
       </div>
@@ -393,7 +394,7 @@ function setActiveTab(tab: any) {
 
         <template #footer>
           <div class="flex justify-end gap-3">
-            <UButton label="Cancel" color="gray" variant="ghost" @click="showManufacturerForm = false" />
+            <UButton label="Cancel" color="neutral" variant="ghost" @click="showManufacturerForm = false" />
             <UButton label="Create Manufacturer" icon="i-heroicons-plus" :loading="manufacturerCreating"
               :disabled="!newManufacturer.name.trim()" @click="createManufacturer" />
           </div>

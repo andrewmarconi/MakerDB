@@ -54,7 +54,10 @@ function handleKeydown(e: KeyboardEvent) {
     e.preventDefault()
     addTag()
   } else if (e.key === 'Backspace' && !newTag.value && props.modelValue.length > 0) {
-    removeTag(props.modelValue[props.modelValue.length - 1])
+    const lastTag = props.modelValue[props.modelValue.length - 1]
+    if (lastTag !== undefined) {
+      removeTag(lastTag)
+    }
   } else if (e.key === 'Escape') {
     isDropdownOpen.value = false
   }

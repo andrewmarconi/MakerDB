@@ -21,7 +21,7 @@ const selectedTab = ref(0)
       <div class="flex items-center gap-4">
         <UButton
           variant="ghost"
-          color="gray"
+          color="neutral"
           icon="i-heroicons-arrow-left"
           to="/inventory"
         />
@@ -68,7 +68,7 @@ const selectedTab = ref(0)
               <div class="mt-4">
                 <div class="text-sm font-medium mb-2">Stored at:</div>
                 <div class="flex flex-wrap gap-2">
-                  <UBadge v-for="loc in part.locations" :key="loc.name" variant="subtle" color="gray">
+                  <UBadge v-for="loc in part.locations" :key="loc.name" variant="subtle" color="neutral">
                     {{ loc.name }} ({{ loc.quantity }})
                   </UBadge>
                 </div>
@@ -107,7 +107,7 @@ const selectedTab = ref(0)
            <div class="p-4 space-y-6">
             <div class="flex items-center justify-between">
               <h3 class="text-lg font-semibold">Stock Inventory</h3>
-              <UButton label="Add Location" icon="i-heroicons-plus" variant="ghost" color="gray" />
+              <UButton label="Add Location" icon="i-heroicons-plus" variant="ghost" color="neutral" />
             </div>
             
             <UTable :rows="part.locations" :columns="[{ key: 'name', label: 'Location' }, { key: 'quantity', label: 'Quantity' }, { key: 'actions', label: '' }]">
@@ -118,7 +118,7 @@ const selectedTab = ref(0)
                 </div>
               </template>
               <template #actions-data="{ row }">
-                <UButton icon="i-heroicons-pencil" variant="ghost" color="gray" size="xs" />
+                <UButton icon="i-heroicons-pencil" variant="ghost" color="neutral" size="xs" />
               </template>
             </UTable>
           </div>
