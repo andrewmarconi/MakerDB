@@ -1,13 +1,33 @@
 <script setup lang="ts" generic="T">
 import { useStorage } from '@vueuse/core'
 import type { ColumnDef } from '@nuxt/ui'
-import type { Row } from '@tanstack/vue-table'
+import type { DropdownMenuItem } from '@nuxt/ui'
 
 interface ActionConfig {
   label: string
   icon: string
   onClick: (row: any) => void
   variant?: 'default' | 'destructive'
+}
+
+interface Props<T> {
+  data: T[]
+  columns: ColumnDef<T>[]
+  viewMode?: 'table' | 'grid'
+  storageKey?: string
+  cardFields: string[]
+  cardActions?: ActionConfig[]
+  tableActions?: ActionConfig[]
+  defaultSort?: { id: string; desc: boolean }
+  searchable?: boolean
+  filterUI?: any
+  showColumnToggle?: boolean
+  paginatable?: boolean
+  itemsPerPage?: number
+  clickableColumn?: string
+  onRowClick?: (row: T) => void | { path: string }
+  emptyState?: string | any
+  loading?: boolean
 }
 
 interface Props<T> {
@@ -140,6 +160,20 @@ function getDetailRouteFromItem(item: T) {
   }
   return null
 }
+
+const columnToggleItems = computed<DropdownMenuItem[]>(() => {
+  return props.columns.map((col) => {
+    const key = (col.id || col.accessorKey) as string
+    return {
+      label: (col.header as string) || key,
+      type: 'checkbox' as const,
+      checked: columnVisibility.value[key] !== false,
+      onUpdateChecked: (checked: boolean) => {
+        columnVisibility.value[key] = checked
+      }
+    }
+  })
+})
 </script>
 
 <template>
@@ -168,18 +202,9 @@ function getDetailRouteFromItem(item: T) {
             size="sm"
             @click="viewMode = 'grid'"
           />
-          <UDropdownMenu v-if="showColumnToggle">
+          <UDropdownMenu v-if="showColumnToggle" :items="columnToggleItems">
             <template #default>
               <UButton icon="i-heroicons-view-columns" color="gray" variant="ghost" />
-            </template>
-            <template #items>
-              <UCheckbox
-                v-for="col in columns"
-                :key="col.id || col.accessorKey"
-                v-model="columnVisibility[col.id || col.accessorKey]"
-              >
-                {{ (col.header as string) || (col.accessorKey as string) }}
-              </UCheckbox>
             </template>
           </UDropdownMenu>
         </div>
