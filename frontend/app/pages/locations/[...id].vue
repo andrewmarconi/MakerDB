@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FieldSchema } from '~/shared/types/ui'
+import type { FieldSchema, TabSchema } from '~/shared/types/ui'
 import DataFormView from '~/components/DataFormView.vue'
 
 definePageMeta({
@@ -39,9 +39,6 @@ const { data: locations, refresh: refreshLocations } = await useApiFetch('/inven
 const path = computed(() => {
   const result: any[] = []
   if (!locations.value || !currentLocationId.value) return result
-
-  // Build path from current location upward (if we had parent_id support)
-  // For now, just show current location
   const current = locations.value.find((l: any) => l.id === currentLocationId.value)
   if (current) result.push(current)
   return result
@@ -51,10 +48,8 @@ const path = computed(() => {
 const childLocations = computed(() => {
   if (!locations.value) return []
   if (!currentLocationId.value) {
-    // Top level - show all (no parent filtering since model doesn't have parent_id)
     return locations.value
   }
-  // For now, return empty since we don't have hierarchy in the model
   return []
 })
 
@@ -66,12 +61,21 @@ const stockAtLocation = computed(() => {
   return allStock.value.filter((s: any) => s.storage?.id === currentLocationId.value)
 })
 
-// Schema for DataFormView
-const locationSchema: FieldSchema[] = [
+// Schema for Details tab
+const detailsSchema: FieldSchema[] = [
   { key: 'name', label: 'Location Name', type: 'text', required: true, span: 2 },
   { key: 'description', label: 'Description', type: 'textarea', span: 2 },
   { key: 'tags', label: 'Tags', type: 'tags', span: 2 },
 ]
+
+// Tab definitions
+const tabs = [
+  { label: 'Details', icon: 'i-heroicons-information-circle' },
+  { label: 'Sub-Locations', icon: 'i-heroicons-squares-2x2' },
+  { label: 'Parts', icon: 'i-heroicons-cube' },
+]
+
+const activeTab = ref(0)
 
 // Handle navigation to child location
 function navigateToChild(childId: string) {
@@ -82,11 +86,9 @@ function navigateToChild(childId: string) {
 // Handle save events from DataFormView
 async function handleSave(field: string, value: any, response: any) {
   toast.add({ title: `${field} updated`, icon: 'i-heroicons-check-circle' })
-  // Update the local location data with the response from the server
   if (response) {
     location.value = response
   }
-  // Refresh to ensure consistency
   await refreshLocation()
   refreshLocations()
 }
@@ -152,108 +154,117 @@ async function handleDelete() {
       </div>
     </div>
 
-    <!-- Location Details Card (with DataFormView for click-to-edit) -->
-    <UCard v-if="location">
-      <template #header>
-        <div class="flex items-center justify-between">
-          <h3 class="font-semibold">Location Details</h3>
-          <UBadge variant="subtle" color="neutral">
-            <UIcon name="i-heroicons-pencil" class="w-3 h-3 mr-1" />
-            Click any field to edit
-          </UBadge>
-        </div>
-      </template>
-
-      <DataFormView
-        v-model="location"
-        :schema="locationSchema"
-        endpoint="/inventory/locations"
-        :entity-id="currentLocationId!"
-        save-mode="put"
-        layout="two-column"
-        @save="handleSave"
-        @save-error="handleSaveError"
-      />
-    </UCard>
-
-    <!-- Child Locations Grid -->
-    <div v-if="childLocations.length > 0">
-      <h3 class="text-lg font-semibold mb-4">Sub-locations</h3>
-      <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        <UCard
-          v-for="child in childLocations"
-          :key="child.id"
-          class="cursor-pointer hover:ring-2 hover:ring-primary-500 transition-all group"
-          @click="navigateToChild(child.id)"
-        >
-          <div class="flex items-center gap-3">
-            <div class="p-2 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
-              <UIcon name="i-heroicons-archive-box" class="w-6 h-6" />
+    <!-- Main Content with Tabs -->
+    <UTabs v-if="location" v-model="activeTab" :items="tabs" class="w-full">
+      <!-- Details Tab -->
+      <template #item="{ index }">
+        <UCard class="mt-4">
+          <template #header>
+            <div class="flex items-center justify-between">
+              <h3 class="font-semibold">Location Details</h3>
+              <UBadge variant="subtle" color="neutral">
+                <UIcon name="i-heroicons-pencil" class="w-3 h-3 mr-1" />
+                Click any field to edit
+              </UBadge>
             </div>
-            <div>
-              <div class="font-semibold">{{ child.name }}</div>
-              <div class="text-xs text-gray-500">{{ child.description || 'No description' }}</div>
-            </div>
-          </div>
+          </template>
+
+          <DataFormView
+            v-model="location"
+            :schema="detailsSchema"
+            endpoint="/inventory/locations"
+            :entity-id="currentLocationId!"
+            save-mode="put"
+            layout="two-column"
+            @save="handleSave"
+            @save-error="handleSaveError"
+          />
         </UCard>
-      </div>
-    </div>
+      </template>
 
-    <!-- Empty state for sub-locations when viewing a specific location -->
-    <UCard v-else-if="location" class="text-center py-12 bg-gray-50/50 dark:bg-gray-900/50 border-dashed">
-      <UIcon name="i-heroicons-archive-box-x-mark" class="w-12 h-12 mx-auto text-gray-300 mb-2" />
-      <h3 class="text-lg font-medium text-gray-900 dark:text-white">No sub-locations</h3>
-      <p class="text-gray-500">This location has no child locations defined.</p>
-      <UButton label="Add First Sub-location" variant="link" color="primary" class="mt-2" />
-    </UCard>
-
-    <!-- Stock at this Location -->
-    <UCard v-if="location">
-      <template #header>
-        <div class="flex items-center justify-between">
-          <div class="flex flex-col">
-            <h3 class="font-semibold">Parts at {{ location.name }}</h3>
-            <p class="text-xs text-gray-500">Items physically stored in this location.</p>
+      <!-- Sub-Locations Tab -->
+      <template #item="{ index }">
+        <div v-if="index === 1" class="mt-4 space-y-4">
+          <!-- Child Locations Grid -->
+          <div v-if="childLocations.length > 0" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <UCard
+              v-for="child in childLocations"
+              :key="child.id"
+              class="cursor-pointer hover:ring-2 hover:ring-primary-500 transition-all group"
+              @click="navigateToChild(child.id)"
+            >
+              <div class="flex items-center gap-3">
+                <div class="p-2 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
+                  <UIcon name="i-heroicons-archive-box" class="w-6 h-6" />
+                </div>
+                <div>
+                  <div class="font-semibold">{{ child.name }}</div>
+                  <div class="text-xs text-gray-500">{{ child.description || 'No description' }}</div>
+                </div>
+              </div>
+            </UCard>
           </div>
-          <UBadge v-if="stockAtLocation.length > 0" color="primary" variant="subtle">
-            {{ stockAtLocation.length }} item{{ stockAtLocation.length !== 1 ? 's' : '' }}
-          </UBadge>
+
+          <!-- Empty state for sub-locations -->
+          <UCard v-else class="text-center py-12 bg-gray-50/50 dark:bg-gray-900/50 border-dashed">
+            <UIcon name="i-heroicons-archive-box-x-mark" class="w-12 h-12 mx-auto text-gray-300 mb-2" />
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">No sub-locations</h3>
+            <p class="text-gray-500">This location has no child locations defined.</p>
+            <UButton label="Add First Sub-location" variant="link" color="primary" class="mt-2" />
+          </UCard>
         </div>
       </template>
 
-      <div v-if="stockAtLocation.length > 0" class="divide-y divide-gray-200 dark:divide-gray-700">
-        <div
-          v-for="stock in stockAtLocation"
-          :key="stock.id"
-          class="flex items-center justify-between py-3 px-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded"
-        >
-          <div class="flex items-center gap-3">
-            <UIcon name="i-heroicons-cube" class="w-5 h-5 text-gray-400" />
-            <div>
-              <NuxtLink
-                :to="`/inventory/${stock.part_id}`"
-                class="font-medium text-primary-600 hover:underline"
-              >
-                Part #{{ stock.part_id.substring(0, 8) }}...
-              </NuxtLink>
-              <div v-if="stock.lot" class="text-xs text-gray-500">
-                Lot: {{ stock.lot.name }}
+      <!-- Parts Tab -->
+      <template #item="{ index }">
+        <UCard v-if="index === 2" class="mt-4">
+          <template #header>
+            <div class="flex items-center justify-between">
+              <div class="flex flex-col">
+                <h3 class="font-semibold">Parts at {{ location.name }}</h3>
+                <p class="text-xs text-gray-500">Items physically stored in this location.</p>
+              </div>
+              <UBadge v-if="stockAtLocation.length > 0" color="primary" variant="subtle">
+                {{ stockAtLocation.length }} item{{ stockAtLocation.length !== 1 ? 's' : '' }}
+              </UBadge>
+            </div>
+          </template>
+
+          <div v-if="stockAtLocation.length > 0" class="divide-y divide-gray-200 dark:divide-gray-700">
+            <div
+              v-for="stock in stockAtLocation"
+              :key="stock.id"
+              class="flex items-center justify-between py-3 px-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded"
+            >
+              <div class="flex items-center gap-3">
+                <UIcon name="i-heroicons-cube" class="w-5 h-5 text-gray-400" />
+                <div>
+                  <NuxtLink
+                    :to="`/inventory/${stock.part_id}`"
+                    class="font-medium text-primary-600 hover:underline"
+                  >
+                    Part #{{ stock.part_id.substring(0, 8) }}...
+                  </NuxtLink>
+                  <div v-if="stock.lot" class="text-xs text-gray-500">
+                    Lot: {{ stock.lot.name }}
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-4">
+                <div class="text-right">
+                  <div class="font-semibold">{{ stock.quantity }}</div>
+                  <div v-if="stock.status" class="text-xs text-gray-500">{{ stock.status }}</div>
+                </div>
               </div>
             </div>
           </div>
-          <div class="flex items-center gap-4">
-            <div class="text-right">
-              <div class="font-semibold">{{ stock.quantity }}</div>
-              <div v-if="stock.status" class="text-xs text-gray-500">{{ stock.status }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <div v-else class="text-sm text-gray-500 italic p-4 text-center">
-        No parts currently assigned to this location.
-      </div>
-    </UCard>
+          <div v-else class="text-sm text-gray-500 italic p-4 text-center">
+            No parts currently assigned to this location.
+          </div>
+        </UCard>
+      </template>
+    </UTabs>
 
     <!-- Top-level locations list (when no specific location selected) -->
     <div v-if="!currentLocationId && locations">

@@ -91,3 +91,29 @@ export type DataFormViewProps = {
     /** Disable all editing */
     readonly?: boolean;
 };
+
+export type TabSchema = {
+    key: string;
+    label: string;
+    icon?: string;
+    fields: FieldSchema[];
+};
+
+export type DataFormViewTabsProps = {
+    /** v-model for the form data */
+    modelValue: Record<string, any>;
+    /** Tab definitions with grouped fields */
+    tabs: TabSchema[];
+    /** API endpoint for PATCH/PUT */
+    endpoint: string;
+    /** ID for the entity */
+    entityId: string;
+    /** Save mode - 'patch' sends only changed field, 'put' sends full object */
+    saveMode?: 'patch' | 'put';
+    /** Debounce delay for auto-save in ms */
+    debounceMs?: number;
+    /** Layout mode */
+    layout?: 'single' | 'two-column';
+    /** Disable all editing */
+    readonly?: boolean;
+};
