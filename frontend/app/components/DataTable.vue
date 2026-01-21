@@ -161,6 +161,30 @@ function getDetailRouteFromItem(item: T) {
   return null
 }
 
+function getStatusColor(status: string) {
+  if (!status) return 'gray'
+  const statusLower = status.toLowerCase()
+  const colorMap: Record<string, string> = {
+    active: 'green',
+    draft: 'amber',
+    completed: 'green',
+    archived: 'gray',
+    open: 'blue',
+    ordered: 'yellow',
+    received: 'green',
+    linked: 'blue',
+    local: 'orange',
+    meta: 'purple',
+    subassembly: 'green',
+    'sub-assembly': 'green',
+    in_stock: 'green',
+    low_stock: 'orange',
+    out_of_stock: 'red',
+    both: 'purple'
+  }
+  return colorMap[statusLower] || 'gray'
+}
+
 const columnToggleItems = computed<DropdownMenuItem[]>(() => {
   return props.columns.map((col) => {
     const key = (col.id || col.accessorKey) as string
@@ -260,9 +284,17 @@ const columnToggleItems = computed<DropdownMenuItem[]>(() => {
 
           <div class="space-y-2">
             <slot name="card-body" :item="item">
-              <div v-for="field in cardFields" :key="field" class="flex justify-between">
-                <span class="text-sm text-gray-500">{{ field }}</span>
-                <span class="text-sm">{{ (item as any)[field] }}</span>
+              <div v-for="field in cardFields" :key="field" class="flex justify-between items-center">
+                <span class="text-sm text-gray-500 capitalize">{{ field.replace(/_/g, ' ') }}</span>
+                <UBadge
+                  v-if="field === 'status'"
+                  :color="getStatusColor((item as any)[field])"
+                  variant="subtle"
+                  size="xs"
+                >
+                  {{ (item as any)[field] }}
+                </UBadge>
+                <span v-else class="text-sm">{{ (item as any)[field] }}</span>
               </div>
             </slot>
           </div>
