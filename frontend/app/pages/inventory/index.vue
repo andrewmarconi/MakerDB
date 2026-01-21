@@ -135,20 +135,3 @@ onMounted(fetchParts)
     </div>
   </div>
 </template>
-
-        <template #total_stock-cell="{ row }">
-          <div class="font-mono">{{ row.total_stock }}</div>
-        </template>
-      </DataTable>
-
-      <div v-if="total > ITEMS_PER_PAGE" class="flex justify-center mt-4">
-        <UPagination
-          v-model:page="page"
-          :total="total"
-          :items-per-page="ITEMS_PER_PAGE"
-          :show-controls="true"
-        />
-      </div>
-    </UCard>
-  </div>
-</template>
