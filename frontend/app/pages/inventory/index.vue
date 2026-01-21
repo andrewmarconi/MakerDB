@@ -126,7 +126,7 @@ onMounted(fetchParts)
         :columns="columns"
         :card-fields="cardFields"
         clickable-column="name"
-        :on-row-click="(part) => ({ path: `/inventory/${part.id}` })"
+        :on-row-click="(row) => ({ path: `/inventory/${row.original.id}` })"
         :paginatable="false"
       >
         <template #part_type-cell="{ row }">

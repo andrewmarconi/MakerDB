@@ -24,9 +24,16 @@ const columns: ColumnDef<Order>[] = [
 
 const cardFields = ['vendor', 'status', 'total', 'date']
 
-const { data: orders, refresh } = await useApiFetch('/procurement/orders/')
+const { data, pending, error } = await useAsyncData(
+  'orders',
+  (_nuxtApp, { signal }) => $fetch<Order[]>('/db/orders/', { signal }),
+)
 
-const orderData = computed(() => orders.value ?? [])
+const isLoading = computed(() => {
+  if (pending) return true;
+  if (error) return true;
+  return false;
+})
 </script>
 
 <template>
@@ -41,25 +48,25 @@ const orderData = computed(() => orders.value ?? [])
       </div>
     </div>
 
-    <DataTable
-      v-if="orders"
-      :data="orderData"
-      :columns="columns"
-      :card-fields="cardFields"
+    <template v-if="error">
+      <UAlert 
+        color="error"
+        title="There was a problem loading data"
+        :description="error.message"
+        icon="i-lucide-terminal"
+       />
+    </template>
+    <DataTable 
+      :data="data as Order[]" 
+      :columns="columns" 
+      :card-fields="cardFields" 
       searchable
-      clickable-column="order_id"
-      :on-row-click="(order) => ({ path: `/purchasing/${order.id}` })"
-    >
+      clickable-column="order_id" 
+      :loading="!isLoading"
+      :on-row-click="(row) => ({ path: `/purchasing/${row.original.id}` })">
       <template #status-cell="{ row }">
-        <StatusBadge :status="row.status" />
+        <StatusBadge :status="row.original.status" />
       </template>
     </DataTable>
-
-    <UCard v-else>
-      <div class="flex items-center justify-center py-12">
-        <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-primary-500" />
-        <span class="ml-3">Loading orders...</span>
-      </div>
-    </UCard>
   </div>
 </template>
