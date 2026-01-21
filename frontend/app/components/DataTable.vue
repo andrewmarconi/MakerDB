@@ -139,10 +139,20 @@ function getDetailRoute(item: any) {
           class="flex-1"
         />
         <div class="flex items-center gap-2">
-          <UButtonGroup v-model="viewMode" size="sm">
-            <UButton value="table" icon="i-heroicons-table-cells" color="gray" variant="ghost" />
-            <UButton value="grid" icon="i-heroicons-squares-2x2" color="gray" variant="ghost" />
-          </UButtonGroup>
+          <UButton
+            :color="viewMode === 'table' ? 'primary' : 'gray'"
+            :variant="viewMode === 'table' ? 'solid' : 'ghost'"
+            icon="i-heroicons-table-cells"
+            size="sm"
+            @click="viewMode = 'table'"
+          />
+          <UButton
+            :color="viewMode === 'grid' ? 'primary' : 'gray'"
+            :variant="viewMode === 'grid' ? 'solid' : 'ghost'"
+            icon="i-heroicons-squares-2x2"
+            size="sm"
+            @click="viewMode = 'grid'"
+          />
           <UDropdownMenu v-if="showColumnToggle">
             <template #default>
               <UButton icon="i-heroicons-view-columns" color="gray" variant="ghost" />
