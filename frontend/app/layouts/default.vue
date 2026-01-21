@@ -117,7 +117,7 @@ async function fetchEntityName(path, segment, index) {
   if (apiEndpoint) {
     try {
       const data = await $fetch(apiEndpoint)
-      const name = data.name || data.project_name || data.part_name || data.company_name || data.location_name || null
+      const name = data.name || data.project_name || data.part_name || data.company_name || data.location_name || data.number || null
       if (name) {
         entityNameCache.value[cacheKey] = name
         return name
