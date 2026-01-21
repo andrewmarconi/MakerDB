@@ -1,5 +1,6 @@
-<script setup>
-// Root locations view - show all top-level storage locations
+<script setup lang="ts">
+import type { ColumnDef } from '@tanstack/vue-table'
+
 definePageMeta({
   title: 'Storage Locations'
 })
@@ -9,17 +10,38 @@ useSeoMeta({
   description: 'Browse and manage your storage hierarchy.'
 })
 
-// Delete functionality
-const showDeleteModal = ref(false)
-const locationToDelete = ref(null)
-const isDeleting = ref(false)
-const deleteError = ref(null)
-
-function confirmDelete(location) {
-  locationToDelete.value = location
-  showDeleteModal.value = true
-  deleteError.value = null
+interface Location {
+  id: string
+  name: string
+  description: string | null
+  children_count: number
+  created_at: string
 }
+
+const columns: ColumnDef<Location>[] = [
+  { accessorKey: 'name', header: 'Location Name' },
+  { accessorKey: 'description', header: 'Description' },
+  { accessorKey: 'children_count', header: 'Sub-locations' },
+  { accessorKey: 'created_at', header: 'Created' }
+]
+
+const cardFields = ['description', 'children_count', 'created_at']
+
+const { data, pending, error, refresh } = await useAsyncData(
+  'locations',
+  (_nuxtApp, { signal }) => $fetch<Location[]>('/db/inventory/locations/', { signal }),
+)
+
+const isLoading = computed(() => {
+  if (pending) return true
+  if (error) return true
+  return false
+})
+
+const showDeleteModal = ref(false)
+const locationToDelete = ref<Location | null>(null)
+const isDeleting = ref(false)
+const deleteError = ref<string | null>(null)
 
 async function handleDelete() {
   if (!locationToDelete.value) return
@@ -28,31 +50,35 @@ async function handleDelete() {
   deleteError.value = null
 
   try {
-    await useApiFetch(`/inventory/locations/${locationToDelete.value.id}`, {
+    await $fetch(`/inventory/locations/${locationToDelete.value.id}`, {
       method: 'DELETE'
     })
     showDeleteModal.value = false
     locationToDelete.value = null
     refresh()
-  } catch (err) {
-    deleteError.value = err.message || 'Failed to delete location. It may contain stock entries.'
+  } catch (err: any) {
+    deleteError.value = err.data?.detail || err.message || 'Failed to delete location'
   } finally {
     isDeleting.value = false
   }
 }
 
-// Dropdown menu items for each location
-function getLocationActions(location) {
-  return [
-    [
-      { label: 'Edit', icon: 'i-heroicons-pencil-square', to: `/locations/${location.id}/edit` },
-      { label: 'View Details', icon: 'i-heroicons-eye', to: `/locations/${location.id}` }
-    ],
-    [
-      { label: 'Delete', icon: 'i-heroicons-trash', color: 'error', onSelect: () => confirmDelete(location) }
-    ]
-  ]
-}
+const cardActions = computed(() => [
+  {
+    label: 'Edit',
+    icon: 'i-heroicons-pencil-square',
+    onClick: (item: Location) => navigateTo(`/locations/${item.id}/edit`)
+  },
+  {
+    label: 'Delete',
+    icon: 'i-heroicons-trash',
+    variant: 'destructive' as const,
+    onClick: (item: Location) => {
+      locationToDelete.value = item
+      showDeleteModal.value = true
+    }
+  }
+])
 </script>
 
 <template>
@@ -66,44 +92,38 @@ function getLocationActions(location) {
         <UButton icon="i-heroicons-plus" label="Add Location" color="primary" to="/locations/new" />
       </div>
     </div>
-
-    <UCard>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div v-for="location in locations" :key="location.id"
-          class="p-4 border border-gray-200 dark:border-gray-800 rounded-lg hover:border-primary-500 dark:hover:border-primary-400 transition-colors group">
-          <div class="flex items-start justify-between">
-            <NuxtLink :to="`/locations/${location.id}`" class="flex-1">
-              <h3 class="font-semibold text-lg group-hover:text-primary-500">{{ location.name }}</h3>
-              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ location.description || 'No description' }}</p>
-            </NuxtLink>
-            <UDropdownMenu :items="getLocationActions(location)">
-              <UButton variant="ghost" color="gray" icon="i-heroicons-ellipsis-vertical" size="sm" />
-            </UDropdownMenu>
-          </div>
-          <div class="mt-3 flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-            <span v-if="location.children_count">
-              <UIcon name="i-heroicons-folder" class="w-4 h-4 inline mr-1" />
-              {{ location.children_count }} sub-locations
-            </span>
-          </div>
+    <template v-if="error">
+      <UAlert 
+        color="error"
+        title="There was a problem loading data"
+        :description="error.message"
+        icon="i-lucide-terminal"
+      />
+    </template>
+    <DataTable 
+      v-if="data"
+      :data="data as Location[]" 
+      :columns="columns" 
+      :card-fields="cardFields" 
+      :card-actions="cardActions"
+      searchable
+      clickable-column="name" 
+      :default-sort="{ id: 'name', desc: false }" 
+      :loading="!isLoading"
+      :on-row-click="(item) => ({ path: `/locations/${item.id}` })">
+      <template #children_count-cell="{ row }">
+        <div class="flex items-center gap-1">
+          <UIcon name="i-heroicons-folder" class="w-4 h-4 text-amber-500" />
+          <span>{{ row.children_count }} sub-locations</span>
         </div>
-      </div>
+      </template>
+    </DataTable>
 
-      <div v-if="error" class="text-center py-12 text-red-500">
-        <UIcon name="i-heroicons-exclamation-triangle" class="w-12 h-12 mx-auto mb-4" />
-        <p class="font-semibold">Failed to load storage locations</p>
-        <p class="text-sm mt-2 text-gray-500">{{ error.message || 'An error occurred' }}</p>
-      </div>
+    <UModal v-model:open="showDeleteModal">
+      <template #header>
+        <h3 class="text-lg font-semibold">Delete Location</h3>
+      </template>
 
-      <div v-else-if="!locations || locations.length === 0" class="text-center py-12 text-gray-500">
-        <UIcon name="i-heroicons-folder-open" class="w-12 h-12 mx-auto mb-4 opacity-50" />
-        <p class="mb-4">No storage locations found. Create one to get started.</p>
-        <UButton icon="i-heroicons-plus" label="Create First Location" color="primary" to="/locations/new" />
-      </div>
-    </UCard>
-
-    <!-- Delete Confirmation Modal -->
-    <UModal v-model:open="showDeleteModal" title="Delete Location">
       <template #body>
         <p class="text-gray-600 dark:text-gray-400">
           Are you sure you want to delete <strong>{{ locationToDelete?.name }}</strong>? This action cannot be undone.
