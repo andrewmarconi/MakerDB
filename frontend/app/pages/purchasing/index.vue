@@ -31,7 +31,7 @@ const cardFields = ['vendor', 'status', 'total', 'date']
 
 const { data, pending, error } = await useAsyncData(
   'orders',
-  (_nuxtApp, { signal }) => $fetch<Order[]>('/db/orders/', { signal }),
+  (_nuxtApp, { signal }) => $fetch<Order[]>('/db/procurement/orders/', { signal }),
 )
 
 const isLoading = computed(() => {
