@@ -16,6 +16,10 @@ from inventory.schemas import (
 from parts.models import Part
 from procurement.models import Order
 from asgiref.sync import sync_to_async
+from django.db import transaction
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/inventory", tags=["Inventory"])
 
@@ -68,16 +72,30 @@ async def update_location(location_id: UUID, data: StorageUpdate):
     @sync_to_async
     def _update():
         try:
-            location = Storage.objects.get(id=location_id)
-        except Storage.DoesNotExist:
-            raise ValueError("Storage location not found", 404)
+            logger.info(f"Starting atomic update for location {location_id}")
+            with transaction.atomic():
+                try:
+                    location = Storage.objects.select_for_update().get(id=location_id)
+                    logger.debug(f"Acquired lock on location {location_id}")
+                except Storage.DoesNotExist:
+                    raise ValueError("Storage location not found", 404)
 
-        update_data = data.model_dump(exclude_unset=True)
-        for field, value in update_data.items():
-            setattr(location, field, value)
+                update_data = data.model_dump(exclude_unset=True)
+                logger.info(f"Updating location {location_id} with data: {update_data}")
 
-        location.save()
-        return _get_storage_queryset().get(id=location.id)
+                for field, value in update_data.items():
+                    setattr(location, field, value)
+
+                location.save()
+                logger.debug(f"Saved location {location_id}")
+
+                # Refresh from DB to ensure we returning the current state
+                updated = _get_storage_queryset().get(id=location.id)
+                logger.info(f"Successfully updated location {location_id}")
+                return updated
+        except Exception as e:
+            logger.error(f"Error updating location {location_id}: {e}")
+            raise
 
     try:
         location = await _update()
@@ -85,6 +103,8 @@ async def update_location(location_id: UUID, data: StorageUpdate):
     except ValueError as e:
         args = e.args
         raise HTTPException(status_code=args[1] if len(args) > 1 else 400, detail=args[0])
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.delete("/locations/{location_id}", status_code=204)
@@ -116,7 +136,9 @@ async def delete_location(location_id: UUID):
 
 
 def _get_stock_queryset():
-    return Stock.objects.select_related("part", "storage", "lot")
+    return Stock.objects.select_related("part", "storage", "lot").prefetch_related(
+        "storage__attachments", "lot__attachments"
+    )
 
 
 @router.get("/stock", response_model=List[StockSchema])

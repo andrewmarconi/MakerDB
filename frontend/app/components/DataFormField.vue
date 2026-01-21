@@ -32,7 +32,8 @@ watch(() => props.modelValue, (newVal) => {
 watch(() => props.state, (newState) => {
   if (newState === 'editing') {
     nextTick(() => {
-      inputRef.value?.focus()
+      const inputEl = inputRef.value?.$el?.querySelector?.('input, textarea, select')
+      inputEl?.focus?.()
     })
   }
 })

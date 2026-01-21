@@ -31,6 +31,9 @@ const fieldStates = ref<Record<string, FieldState>>({})
 const fieldErrors = ref<Record<string, string | null>>({})
 const originalValues = ref<Record<string, any>>({})
 const pendingSaves = ref<Record<string, ReturnType<typeof setTimeout>>>({})
+const isInitialized = ref(false)
+// Track committed values for comparison during edit
+const committedValues = ref<Record<string, any>>({})
 
 // Initialize field states
 onMounted(() => {
@@ -38,13 +41,15 @@ onMounted(() => {
     fieldStates.value[field.key] = 'idle'
     fieldErrors.value[field.key] = null
     originalValues.value[field.key] = props.modelValue[field.key]
+    committedValues.value[field.key] = props.modelValue[field.key]
   })
+  isInitialized.value = true
 })
 
 // Watch for external modelValue changes
 watch(() => props.modelValue, (newVal) => {
   props.schema.forEach(field => {
-    if (fieldStates.value[field.key] === 'idle') {
+    if (!isInitialized.value || fieldStates.value[field.key] === 'idle') {
       originalValues.value[field.key] = newVal[field.key]
     }
   })
@@ -62,14 +67,16 @@ function handleFieldFocus(field: FieldSchema) {
   fieldStates.value[field.key] = 'editing'
   fieldErrors.value[field.key] = null
   originalValues.value[field.key] = props.modelValue[field.key]
+  committedValues.value[field.key] = props.modelValue[field.key]
   emit('field-focus', field.key)
 }
 
 function handleFieldBlur(field: FieldSchema) {
   emit('field-blur', field.key)
 
-  // Check if value actually changed
-  const currentValue = props.modelValue[field.key]
+  // Check if value actually changed (compare against committed value, not props.modelValue
+  // which may not be updated yet due to v-model emit ordering)
+  const currentValue = committedValues.value[field.key]
   const originalValue = originalValues.value[field.key]
 
   if (JSON.stringify(currentValue) === JSON.stringify(originalValue)) {
@@ -108,6 +115,7 @@ function handleFieldBlur(field: FieldSchema) {
 function handleFieldUpdate(field: FieldSchema, value: any) {
   const newModelValue = { ...props.modelValue, [field.key]: value }
   emit('update:modelValue', newModelValue)
+  committedValues.value[field.key] = value
 }
 
 function handleFieldSave(field: FieldSchema) {
@@ -164,8 +172,18 @@ async function saveField(field: FieldSchema) {
 
     // Success!
     fieldStates.value[field.key] = 'success'
-    originalValues.value[field.key] = value
-    emit('save', field.key, value, response)
+    
+    // Update modelValue and originalValues with actual server data
+    if (response && response[field.key] !== undefined) {
+      const serverValue = response[field.key]
+      const newModelValue = { ...props.modelValue, [field.key]: serverValue }
+      emit('update:modelValue', newModelValue)
+      originalValues.value[field.key] = serverValue
+      emit('save', field.key, serverValue, response)
+    } else {
+      originalValues.value[field.key] = value
+      emit('save', field.key, value, response)
+    }
 
     // Reset to idle after success animation
     setTimeout(() => {

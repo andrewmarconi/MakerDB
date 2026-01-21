@@ -80,8 +80,14 @@ function navigateToChild(childId: string) {
 }
 
 // Handle save events from DataFormView
-function handleSave(field: string, value: any, response: any) {
+async function handleSave(field: string, value: any, response: any) {
   toast.add({ title: `${field} updated`, icon: 'i-heroicons-check-circle' })
+  // Update the local location data with the response from the server
+  if (response) {
+    location.value = response
+  }
+  // Refresh to ensure consistency
+  await refreshLocation()
   refreshLocations()
 }
 
