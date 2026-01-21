@@ -6,6 +6,11 @@ definePageMeta({
   title: 'Edit Part'
 })
 
+useSeoMeta({
+  title: 'Edit Part',
+  description: 'Edit part details, specifications, and stock information.'
+})
+
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()

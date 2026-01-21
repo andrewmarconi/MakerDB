@@ -3,6 +3,11 @@ definePageMeta({
   title: 'Add New Company'
 })
 
+useSeoMeta({
+  title: 'Add New Company',
+  description: 'Add a new manufacturer or vendor to your database.'
+})
+
 const router = useRouter()
 const toast = useToast()
 

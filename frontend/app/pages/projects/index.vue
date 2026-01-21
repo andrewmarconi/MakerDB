@@ -5,6 +5,11 @@ definePageMeta({
   title: 'Projects'
 })
 
+useSeoMeta({
+  title: 'Projects',
+  description: 'Manage your Bill of Materials and calculate production costs.'
+})
+
 interface Project {
   id: string
   name: string

@@ -3,6 +3,11 @@ definePageMeta({
   title: 'Add New Designator'
 })
 
+useSeoMeta({
+  title: 'Add New Designator',
+  description: 'Add a new component designator prefix to your database.'
+})
+
 const router = useRouter()
 const toast = useToast()
 

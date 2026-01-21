@@ -5,6 +5,11 @@ definePageMeta({
   title: 'Inventory'
 })
 
+useSeoMeta({
+  title: 'Inventory',
+  description: 'Manage your parts and track stock levels.'
+})
+
 interface Part {
   id: string
   name: string

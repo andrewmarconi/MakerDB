@@ -1,4 +1,13 @@
 <script setup lang="ts">
+definePageMeta({
+  title: 'Edit Location'
+})
+
+useSeoMeta({
+  title: 'Edit Location',
+  description: 'Edit storage location details and settings.'
+})
+
 const route = useRoute()
 const router = useRouter()
 

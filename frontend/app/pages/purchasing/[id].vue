@@ -1,4 +1,13 @@
 <script setup>
+definePageMeta({
+  title: 'Order Details'
+})
+
+useSeoMeta({
+  title: 'Order Details',
+  description: 'View and manage purchase order details.'
+})
+
 const route = useRoute()
 const id = route.params.id
 

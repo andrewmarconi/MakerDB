@@ -1,4 +1,13 @@
 <script setup>
+definePageMeta({
+  title: 'Storage Location'
+})
+
+useSeoMeta({
+  title: 'Storage Location',
+  description: 'View storage location details and contents.'
+})
+
 const route = useRoute()
 const router = useRouter()
 

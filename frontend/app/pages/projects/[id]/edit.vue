@@ -3,6 +3,11 @@ definePageMeta({
   title: 'Edit Project'
 })
 
+useSeoMeta({
+  title: 'Edit Project',
+  description: 'Edit your project details and settings.'
+})
+
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()

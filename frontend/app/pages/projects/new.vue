@@ -5,6 +5,11 @@ definePageMeta({
   title: 'Create Project'
 })
 
+useSeoMeta({
+  title: 'Create Project',
+  description: 'Create a new project and start building your Bill of Materials.'
+})
+
 const router = useRouter()
 const toast = useToast()
 

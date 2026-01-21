@@ -6,6 +6,11 @@ definePageMeta({
   title: 'Add New Part'
 })
 
+useSeoMeta({
+  title: 'Add New Part',
+  description: 'Add a new part to your inventory database.'
+})
+
 const router = useRouter()
 const toast = useToast()
 

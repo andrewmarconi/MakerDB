@@ -1,4 +1,13 @@
 <script setup lang="ts">
+definePageMeta({
+  title: 'Add New Location'
+})
+
+useSeoMeta({
+  title: 'Add New Location',
+  description: 'Create a new storage location in your hierarchy.'
+})
+
 const router = useRouter()
 
 // Mode selection

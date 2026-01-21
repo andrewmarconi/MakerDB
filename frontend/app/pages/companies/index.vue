@@ -3,6 +3,11 @@ definePageMeta({
   title: 'Companies'
 })
 
+useSeoMeta({
+  title: 'Companies',
+  description: 'Manage manufacturers and vendors.'
+})
+
 const router = useRouter()
 const toast = useToast()
 

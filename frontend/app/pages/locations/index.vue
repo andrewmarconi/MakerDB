@@ -1,6 +1,13 @@
 <script setup>
 // Root locations view - show all top-level storage locations
-const { data: locations, error, refresh } = await useApiFetch('/inventory/locations')
+definePageMeta({
+  title: 'Storage Locations'
+})
+
+useSeoMeta({
+  title: 'Storage Locations',
+  description: 'Browse and manage your storage hierarchy.'
+})
 
 // Delete functionality
 const showDeleteModal = ref(false)

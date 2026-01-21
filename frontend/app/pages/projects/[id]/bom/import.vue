@@ -3,6 +3,11 @@ definePageMeta({
   title: 'Import BOM'
 })
 
+useSeoMeta({
+  title: 'Import BOM',
+  description: 'Import a Bill of Materials from a CSV file.'
+})
+
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()

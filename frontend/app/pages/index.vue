@@ -7,6 +7,11 @@ definePageMeta({
   title: 'Dashboard'
 })
 
+useSeoMeta({
+  title: 'Dashboard',
+  description: 'View your inventory overview, stock alerts, and recent activity.'
+})
+
 const stats = [
   { label: 'Total Parts', value: '1,245', icon: 'i-heroicons-cpu-chip', color: 'text-blue-500' },
   { label: 'Stock Value', value: '$45,230', icon: 'i-heroicons-banknotes', color: 'text-green-500' },

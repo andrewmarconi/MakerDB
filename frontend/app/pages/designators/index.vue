@@ -3,6 +3,11 @@ definePageMeta({
   title: 'Designators'
 })
 
+useSeoMeta({
+  title: 'Designators',
+  description: 'Manage component designator prefixes (e.g., R for Resistor, C for Capacitor).'
+})
+
 const router = useRouter()
 const toast = useToast()
 

@@ -5,6 +5,11 @@ definePageMeta({
   title: 'Purchasing'
 })
 
+useSeoMeta({
+  title: 'Purchasing',
+  description: 'Track your component orders and manage supplier relationships.'
+})
+
 interface Order {
   id: string
   order_id: string
