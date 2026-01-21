@@ -1,5 +1,5 @@
 <script setup>
-const { data: locations } = await useApiFetch('/inventory/occupancy')
+const { data: occupancy } = await useApiFetch('/inventory/occupancy')
 </script>
 
 <template>
@@ -12,18 +12,28 @@ const { data: locations } = await useApiFetch('/inventory/occupancy')
     </template>
 
     <div class="space-y-6">
-      <div v-for="loc in locations" :key="loc.name" class="space-y-2">
-        <div class="flex justify-between text-sm">
-          <span class="font-medium text-gray-700 dark:text-gray-300">{{ loc.name }}</span>
-          <span class="text-gray-500">{{ loc.occupancy }}%</span>
+      <div class="text-center">
+        <div class="text-4xl font-bold" :class="occupancy?.used_percentage > 80 ? 'text-orange-500' : 'text-primary-500'">
+          {{ occupancy?.used_percentage || 0 }}%
         </div>
-        <UProgress :value="loc.occupancy" color="primary" />
+        <div class="text-sm text-gray-500 mt-1">Storage locations in use</div>
+        <div class="text-xs text-gray-400 mt-2">
+          {{ occupancy?.used_locations || 0 }} of {{ occupancy?.total_locations || 0 }} locations have items
+        </div>
+      </div>
+
+      <div v-if="occupancy?.top_locations?.length" class="space-y-3">
+        <div class="text-xs font-medium text-gray-500 uppercase tracking-wide">Top Locations</div>
+        <div v-for="loc in occupancy.top_locations" :key="loc.name" class="flex items-center justify-between text-sm">
+          <span class="text-gray-700 dark:text-gray-300 truncate pr-2">{{ loc.name }}</span>
+          <span class="font-mono text-gray-500">{{ loc.quantity }}</span>
+        </div>
       </div>
     </div>
 
     <template #footer>
       <div class="text-xs text-gray-500">
-        Overall utilization: <span class="font-bold">54.2%</span>
+        <span class="font-bold">{{ occupancy?.empty_locations || 0 }}</span> empty locations available
       </div>
     </template>
   </UCard>

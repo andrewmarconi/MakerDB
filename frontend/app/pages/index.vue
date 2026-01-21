@@ -12,26 +12,43 @@ useSeoMeta({
   description: 'View your inventory overview, stock alerts, and recent activity.'
 })
 
-const stats = [
-  { label: 'Total Parts', value: '1,245', icon: 'i-heroicons-cpu-chip', color: 'text-blue-500' },
-  { label: 'Stock Value', value: '$45,230', icon: 'i-heroicons-banknotes', color: 'text-green-500' },
-  { label: 'Open Orders', value: '12', icon: 'i-heroicons-shopping-cart', color: 'text-amber-500' },
-  { label: 'Active Projects', value: '4', icon: 'i-heroicons-beaker', color: 'text-purple-500' }
-]
+const { data: summary } = await useApiFetch('/dashboard/summary')
 </script>
 
 <template>
   <div class="space-y-8">
     <!-- Quick Stats -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <UCard v-for="stat in stats" :key="stat.label">
+      <UCard>
         <div class="flex items-center gap-4">
-          <div :class="[stat.color, 'p-2 bg-gray-100 dark:bg-gray-800 rounded-lg']">
-            <UIcon :name="stat.icon" class="w-6 h-6" />
+          <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+            <UIcon name="i-heroicons-cpu-chip" class="w-6 h-6 text-blue-500" />
           </div>
           <div>
-            <div class="text-sm text-gray-500">{{ stat.label }}</div>
-            <div class="text-2xl font-bold">{{ stat.value }}</div>
+            <div class="text-sm text-gray-500">Total Parts</div>
+            <div class="text-2xl font-bold">{{ summary?.totalParts || 0 }}</div>
+          </div>
+        </div>
+      </UCard>
+      <UCard>
+        <div class="flex items-center gap-4">
+          <div class="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+            <UIcon name="i-heroicons-shopping-cart" class="w-6 h-6 text-green-500" />
+          </div>
+          <div>
+            <div class="text-sm text-gray-500">Open Orders</div>
+            <div class="text-2xl font-bold">{{ summary?.openOrders || 0 }}</div>
+          </div>
+        </div>
+      </UCard>
+      <UCard>
+        <div class="flex items-center gap-4">
+          <div class="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+            <UIcon name="i-heroicons-beaker" class="w-6 h-6 text-purple-500" />
+          </div>
+          <div>
+            <div class="text-sm text-gray-500">Active Projects</div>
+            <div class="text-2xl font-bold">{{ summary?.activeProjects || 0 }}</div>
           </div>
         </div>
       </UCard>

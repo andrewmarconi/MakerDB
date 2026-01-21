@@ -1,6 +1,7 @@
 from typing import List
 from fastapi import APIRouter, HTTPException, Query
 from uuid import UUID
+from pydantic import BaseModel
 from inventory.models import Storage, Lot, Stock
 from inventory.schemas import (
     StorageSchema,
@@ -18,6 +19,29 @@ from procurement.models import Order
 from asgiref.sync import sync_to_async
 from django.db import transaction
 import logging
+
+
+class LowStockAlert(BaseModel):
+    id: UUID
+    name: str
+    mpn: str
+    stock: int
+    min: int
+    status: str
+
+
+class StorageOccupancyItem(BaseModel):
+    name: str
+    quantity: int
+
+
+class StorageOccupancySummary(BaseModel):
+    total_locations: int
+    used_locations: int
+    empty_locations: int
+    used_percentage: float
+    top_locations: List[StorageOccupancyItem]
+
 
 logger = logging.getLogger(__name__)
 
@@ -356,3 +380,62 @@ async def update_lot(lot_id: UUID, data: LotUpdate):
     except ValueError as e:
         args = e.args
         raise HTTPException(status_code=args[1] if len(args) > 1 else 400, detail=args[0])
+
+
+@router.get("/low-stock", response_model=List[LowStockAlert])
+async def get_low_stock_alerts():
+    @sync_to_async
+    def _get_low_stock():
+        from django.db.models import Sum
+
+        alerts = []
+        parts = Part.objects.filter(low_stock_threshold__isnull=False).prefetch_related("stock_entries")
+        for part in parts:
+            total_stock = part.stock_entries.aggregate(total=Sum("quantity"))["total"] or 0
+            if total_stock <= part.low_stock_threshold:
+                status = "Critical" if total_stock <= (part.low_stock_threshold * 0.5) else "Warning"
+                alerts.append(
+                    LowStockAlert(
+                        id=part.id,
+                        name=part.name,
+                        mpn=part.mpn or "",
+                        stock=total_stock,
+                        min=part.low_stock_threshold,
+                        status=status,
+                    )
+                )
+        return sorted(alerts, key=lambda x: x.stock)
+
+    return await _get_low_stock()
+
+
+@router.get("/occupancy", response_model=StorageOccupancySummary)
+async def get_storage_occupancy():
+    @sync_to_async
+    def _get_occupancy():
+        from django.db.models import Sum
+
+        locations = list(Storage.objects.all())
+        total_locations = len(locations)
+        used_locations = 0
+        location_quantities = []
+
+        for location in locations:
+            total_items = location.stock_in_location.aggregate(total=Sum("quantity", default=0))["total"] or 0
+            if total_items > 0:
+                used_locations += 1
+            location_quantities.append((location.name, total_items))
+
+        top_locations = sorted(location_quantities, key=lambda x: x[1], reverse=True)[:5]
+        empty_locations = total_locations - used_locations
+        used_percentage = round((used_locations / total_locations * 100), 1) if total_locations > 0 else 0
+
+        return StorageOccupancySummary(
+            total_locations=total_locations,
+            used_locations=used_locations,
+            empty_locations=empty_locations,
+            used_percentage=used_percentage,
+            top_locations=[StorageOccupancyItem(name=name, quantity=qty) for name, qty in top_locations],
+        )
+
+    return await _get_occupancy()
