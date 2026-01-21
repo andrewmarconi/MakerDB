@@ -16,7 +16,7 @@ watch(value, (newVal) => {
 </script>
 
 <template>
-  <UFormGroup :label="label">
+  <UFormField :label="label">
     <UInput
       v-model="rawValue"
       placeholder="e.g. 10k, 1uF, 4.7M"
@@ -28,5 +28,5 @@ watch(value, (newVal) => {
         </div>
       </template>
     </UInput>
-  </UFormGroup>
+  </UFormField>
 </template>

@@ -57,15 +57,15 @@ const handleImport = () => {
         <div v-else-if="step === 2" class="space-y-4">
           <p class="text-sm font-medium">Map your CSV columns to MakerDB fields:</p>
           <div class="space-y-3">
-            <UFormGroup label="Designators Column">
+            <UFormField label="Designators Column">
               <USelect v-model="mappings.designators" :items="columns" />
-            </UFormGroup>
-            <UFormGroup label="Quantity Column">
+            </UFormField>
+            <UFormField label="Quantity Column">
               <USelect v-model="mappings.quantity" :items="columns" />
-            </UFormGroup>
-            <UFormGroup label="MPN Column">
+            </UFormField>
+            <UFormField label="MPN Column">
               <USelect v-model="mappings.mpn" :items="columns" />
-            </UFormGroup>
+            </UFormField>
           </div>
         </div>
 
