@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { ColumnDef } from '@tanstack/vue-table'
+
 definePageMeta({
   title: 'Companies'
 })
@@ -8,36 +10,39 @@ useSeoMeta({
   description: 'Manage manufacturers and vendors.'
 })
 
-const router = useRouter()
-const toast = useToast()
+interface Company {
+  id: string
+  name: string
+  website: string | null
+  is_manufacturer: boolean
+  is_vendor: boolean
+  created_at: string
+}
 
-const { data: companies, refresh } = await useApiFetch('/core/companies')
+const columns: ColumnDef<Company>[] = [
+  { accessorKey: 'name', header: 'Company Name' },
+  { accessorKey: 'website', header: 'Website' },
+  { accessorKey: 'is_manufacturer', header: 'Manufacturer' },
+  { accessorKey: 'is_vendor', header: 'Vendor' }
+]
 
-const searchQuery = ref('')
-const typeFilter = ref<'all' | 'manufacturer' | 'vendor'>('all')
+const cardFields = ['website', 'is_manufacturer', 'is_vendor', 'created_at']
 
-const filteredCompanies = computed(() => {
-  if (!companies.value) return []
+const { data, pending, error } = await useAsyncData(
+  'companies',
+  (_nuxtApp, { signal }) => $fetch<Company[]>('/db/companies/', { signal }),
+)
 
-  return (companies.value as any[]).filter((company: any) => {
-    const matchesSearch = company.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-    const matchesType = typeFilter.value === 'all' ||
-      (typeFilter.value === 'manufacturer' && company.is_manufacturer) ||
-      (typeFilter.value === 'vendor' && company.is_vendor)
-    return matchesSearch && matchesType
-  })
+const isLoading = computed(() => {
+  if (pending) return true
+  if (error) return true
+  return false
 })
 
 const showDeleteModal = ref(false)
-const companyToDelete = ref<any>(null)
+const companyToDelete = ref<Company | null>(null)
 const isDeleting = ref(false)
 const deleteError = ref<string | null>(null)
-
-function confirmDelete(company: any) {
-  companyToDelete.value = company
-  showDeleteModal.value = true
-  deleteError.value = null
-}
 
 async function handleDelete() {
   if (!companyToDelete.value) return
@@ -46,13 +51,12 @@ async function handleDelete() {
   deleteError.value = null
 
   try {
-    await useApiFetch(`/core/companies/${companyToDelete.value.id}`, {
+    await $fetch(`/core/companies/${companyToDelete.value.id}`, {
       method: 'DELETE'
     })
     showDeleteModal.value = false
     companyToDelete.value = null
     refresh()
-    toast.add({ title: 'Company deleted' })
   } catch (err: any) {
     deleteError.value = err.data?.detail || err.message || 'Failed to delete company'
   } finally {
@@ -60,29 +64,22 @@ async function handleDelete() {
   }
 }
 
-function getCompanyActions(company: any) {
-  const actions: any[][] = [
-    [
-      { label: 'Edit', icon: 'i-heroicons-pencil-square', to: `/companies/${company.id}/edit` }
-    ]
-  ]
-
-  actions.push([
-    { label: 'Delete', icon: 'i-heroicons-trash', color: 'error', onSelect: () => confirmDelete(company) }
-  ])
-
-  return actions
-}
-
-function getTypeBadge(company: any) {
-  if (company.is_manufacturer && company.is_vendor) {
-    return { label: 'Both', color: 'purple' as const }
-  } else if (company.is_manufacturer) {
-    return { label: 'Manufacturer', color: 'blue' as const }
-  } else {
-    return { label: 'Vendor', color: 'green' as const }
+const cardActions = computed(() => [
+  {
+    label: 'Edit',
+    icon: 'i-heroicons-pencil-square',
+    onClick: (item: Company) => navigateTo(`/companies/${item.id}/edit`)
+  },
+  {
+    label: 'Delete',
+    icon: 'i-heroicons-trash',
+    variant: 'destructive' as const,
+    onClick: (item: Company) => {
+      companyToDelete.value = item
+      showDeleteModal.value = true
+    }
   }
-}
+])
 </script>
 
 <template>
@@ -96,51 +93,40 @@ function getTypeBadge(company: any) {
         <UButton icon="i-heroicons-plus" label="Add Company" color="primary" to="/companies/new" />
       </div>
     </div>
-
-    <UCard>
-      <div class="flex flex-col md:flex-row gap-4 mb-6">
-        <UInput v-model="searchQuery" icon="i-heroicons-magnifying-glass" placeholder="Search companies..."
-          class="flex-1" />
-        <USelect v-model="typeFilter" :items="[
-          { label: 'All Types', value: 'all' },
-          { label: 'Manufacturers', value: 'manufacturer' },
-          { label: 'Vendors', value: 'vendor' }
-        ]" value-key="value" class="w-48" />
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div v-for="company in filteredCompanies" :key="company.id"
-          class="p-4 border border-gray-200 dark:border-gray-800 rounded-lg hover:border-primary-500 dark:hover:border-primary-400 transition-colors group">
-          <div class="flex items-start justify-between">
-            <NuxtLink :to="`/companies/${company.id}`" class="flex-1">
-              <h3 class="font-semibold text-lg group-hover:text-primary-500">{{ company.name }}</h3>
-            </NuxtLink>
-            <UDropdown-menu :items="getCompanyActions(company)">
-              <UButton variant="ghost" color="gray" icon="i-heroicons-ellipsis-vertical" size="sm" />
-            </UDropdown-menu>
-          </div>
-
-          <div class="mt-2 flex items-center gap-2">
-            <UBadge v-bind="getTypeBadge(company)" size="sm" />
-          </div>
-
-          <div v-if="company.website" class="mt-3 text-sm text-gray-500 dark:text-gray-400">
-            <UIcon name="i-heroicons-globe-alt" class="w-4 h-4 inline mr-1" />
-            <a :href="company.website" target="_blank" class="hover:text-primary-500 truncate">{{ company.website }}</a>
-          </div>
-        </div>
-      </div>
-
-      <div v-if="!companies" class="text-center py-12">
-        <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-gray-400 mx-auto" />
-      </div>
-
-      <div v-else-if="filteredCompanies.length === 0" class="text-center py-12 text-gray-500">
-        <UIcon name="i-heroicons-building-office" class="w-12 h-12 mx-auto mb-4 opacity-50" />
-        <p class="mb-4">No companies found matching your criteria.</p>
-        <UButton icon="i-heroicons-plus" label="Add First Company" color="primary" to="/companies/new" />
-      </div>
-    </UCard>
+    <template v-if="error">
+      <UAlert 
+        color="error"
+        title="There was a problem loading data"
+        :description="error.message"
+        icon="i-lucide-terminal"
+      />
+    </template>
+    <DataTable 
+      v-if="data"
+      :data="data as Company[]" 
+      :columns="columns" 
+      :card-fields="cardFields" 
+      :card-actions="cardActions"
+      searchable
+      clickable-column="name" 
+      :default-sort="{ id: 'created_at', desc: true }" 
+      :loading="!isLoading"
+      :on-row-click="(item) => ({ path: `/companies/${item.id}` })">
+      <template #is_manufacturer-cell="{ row }">
+        <UIcon 
+          :name="row.is_manufacturer ? 'i-heroicons-check-circle' : 'i-heroicons-x-circle'" 
+          :class="row.is_manufacturer ? 'text-green-500' : 'text-gray-300'"
+          class="w-5 h-5"
+        />
+      </template>
+      <template #is_vendor-cell="{ row }">
+        <UIcon 
+          :name="row.is_vendor ? 'i-heroicons-check-circle' : 'i-heroicons-x-circle'" 
+          :class="row.is_vendor ? 'text-green-500' : 'text-gray-300'"
+          class="w-5 h-5"
+        />
+      </template>
+    </DataTable>
 
     <UModal v-model:open="showDeleteModal">
       <template #header>
