@@ -105,12 +105,12 @@ async function fetchEntityName(path, segment, index) {
   } else if (segmentLower === 'locations' && index < route.path.split('/').length - 1) {
     const nextSegment = route.path.split('/')[index + 1]
     if (nextSegment && nextSegment.length === 36) {
-      apiEndpoint = `/db/locations/${nextSegment}`
+      apiEndpoint = `/db/inventory/locations/${nextSegment}`
     }
   } else if (segmentLower === 'purchasing' && index < route.path.split('/').length - 1) {
     const nextSegment = route.path.split('/')[index + 1]
     if (nextSegment && nextSegment.length === 36) {
-      apiEndpoint = `/db/orders/${nextSegment}`
+      apiEndpoint = `/db/procurement/orders/${nextSegment}`
     }
   }
 
