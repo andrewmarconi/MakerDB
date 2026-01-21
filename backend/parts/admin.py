@@ -21,7 +21,13 @@ class OfferInline(admin.TabularInline):
 
 @admin.register(Part)
 class PartAdmin(admin.ModelAdmin):
-    list_display = ("name", "mpn", "part_type", "total_stock", "manufacturer")
+    list_display = ("name", "mpn", "part_type", "display_total_stock", "manufacturer")
+
+    def display_total_stock(self, obj):
+        from django.db.models import Sum, Q
+        return obj.stock_entries.aggregate(total=Sum("quantity", filter=Q(stock_entries__status__isnull=True)))["total"] or 0
+
+    display_total_stock.short_description = "Total Stock"
     search_fields = ("name", "mpn", "description")
     list_filter = ("part_type", "manufacturer")
 
