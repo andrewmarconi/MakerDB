@@ -114,15 +114,15 @@ const cardActions = computed(() => [
       :on-row-click="(item) => ({ path: `/companies/${item.id}` })">
       <template #is_manufacturer-cell="{ row }">
         <UIcon 
-          :name="row.is_manufacturer ? 'i-heroicons-check-circle' : 'i-heroicons-x-circle'" 
-          :class="row.is_manufacturer ? 'text-green-500' : 'text-gray-300'"
+          :name="row.original.is_manufacturer ? 'i-heroicons-check-circle' : 'i-heroicons-x-circle'" 
+          :class="row.original.is_manufacturer ? 'text-green-500' : 'text-gray-300'"
           class="w-5 h-5"
         />
       </template>
       <template #is_vendor-cell="{ row }">
         <UIcon 
-          :name="row.is_vendor ? 'i-heroicons-check-circle' : 'i-heroicons-x-circle'" 
-          :class="row.is_vendor ? 'text-green-500' : 'text-gray-300'"
+          :name="row.original.is_vendor ? 'i-heroicons-check-circle' : 'i-heroicons-x-circle'" 
+          :class="row.original.is_vendor ? 'text-green-500' : 'text-gray-300'"
           class="w-5 h-5"
         />
       </template>
@@ -137,13 +137,18 @@ const cardActions = computed(() => [
         <p class="text-gray-600 dark:text-gray-400">
           Are you sure you want to delete <strong>{{ companyToDelete?.name }}</strong>? This action cannot be undone.
         </p>
-        <UAlert v-if="deleteError" color="error" variant="subtle" icon="i-heroicons-exclamation-circle" class="mt-4"
+        <UAlert 
+          v-if="deleteError" 
+          color="error" 
+          variant="subtle" 
+          icon="i-heroicons-exclamation-circle" 
+          class="mt-4"
           :description="deleteError" />
       </template>
 
       <template #footer>
         <div class="flex items-center justify-end gap-3">
-          <UButton label="Cancel" color="gray" variant="ghost" @click="showDeleteModal = false" />
+          <UButton label="Cancel" color="neutral" variant="ghost" @click="showDeleteModal = false" />
           <UButton label="Delete" color="error" :loading="isDeleting" @click="handleDelete" />
         </div>
       </template>
