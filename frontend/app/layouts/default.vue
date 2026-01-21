@@ -37,6 +37,8 @@
 </template>
 
 <script setup>
+import { useStorage } from '@vueuse/core'
+
 const route = useRoute()
 
 const links = [
@@ -72,15 +74,82 @@ const links = [
   }
 ]
 
-const breadcrumbs = computed(() => {
+const entityNameCache = useStorage('breadcrumb-entity-names', {})
+
+async function fetchEntityName(path, segment, index) {
+  const cacheKey = `${path}`
+  if (entityNameCache.value[cacheKey]) {
+    return entityNameCache.value[cacheKey]
+  }
+
+  const segmentLower = segment.toLowerCase()
+  let apiEndpoint = null
+
+  if (segmentLower === 'projects' && index < route.path.split('/').length - 1) {
+    const nextSegment = route.path.split('/')[index + 1]
+    if (nextSegment && nextSegment.length === 36) {
+      apiEndpoint = `/db/projects/${nextSegment}`
+    }
+  } else if (segmentLower === 'inventory' && index < route.path.split('/').length - 1) {
+    const nextSegment = route.path.split('/')[index + 1]
+    if (nextSegment && nextSegment.length === 36) {
+      apiEndpoint = `/db/parts/${nextSegment}`
+    }
+  } else if (segmentLower === 'companies' && index < route.path.split('/').length - 1) {
+    const nextSegment = route.path.split('/')[index + 1]
+    if (nextSegment && nextSegment.length === 36) {
+      apiEndpoint = `/db/companies/${nextSegment}`
+    }
+  } else if (segmentLower === 'locations' && index < route.path.split('/').length - 1) {
+    const nextSegment = route.path.split('/')[index + 1]
+    if (nextSegment && nextSegment.length === 36) {
+      apiEndpoint = `/db/locations/${nextSegment}`
+    }
+  } else if (segmentLower === 'purchasing' && index < route.path.split('/').length - 1) {
+    const nextSegment = route.path.split('/')[index + 1]
+    if (nextSegment && nextSegment.length === 36) {
+      apiEndpoint = `/db/orders/${nextSegment}`
+    }
+  }
+
+  if (apiEndpoint) {
+    try {
+      const data = await $fetch(apiEndpoint)
+      const name = data.name || data.project_name || data.part_name || data.company_name || data.location_name || null
+      if (name) {
+        entityNameCache.value[cacheKey] = name
+        return name
+      }
+    } catch (e) {
+    }
+  }
+
+  return null
+}
+
+const breadcrumbs = computed(async () => {
   const parts = route.path.split('/').filter(Boolean)
-  return [
-    { label: 'Home', to: '/', icon: 'i-heroicons-home' },
-    ...parts.map((part, index) => ({
-      label: part.charAt(0).toUpperCase() + part.slice(1),
-      to: '/' + parts.slice(0, index + 1).join('/')
-    }))
-  ]
+  const homeBreadcrumb = { label: 'Home', to: '/', icon: 'i-heroicons-home' }
+
+  if (parts.length === 0) return [homeBreadcrumb]
+
+  const breadcrumbs = [homeBreadcrumb]
+  let currentPath = ''
+
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i]
+    currentPath += '/' + part
+
+    const name = await fetchEntityName(currentPath, part, i)
+    const label = name || part.charAt(0).toUpperCase() + part.slice(1)
+
+    breadcrumbs.push({
+      label,
+      to: currentPath
+    })
+  }
+
+  return breadcrumbs
 })
 </script>
 
