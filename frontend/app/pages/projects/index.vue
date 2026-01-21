@@ -16,19 +16,22 @@ interface Project {
 const columns: ColumnDef<Project>[] = [
   { accessorKey: 'name', header: 'Project Name' },
   { accessorKey: 'status', header: 'Status' },
-  { accessorKey: 'revision', header: 'Revision' },
-  { accessorKey: 'updated_at', header: 'Last Modified' }
+  { accessorKey: 'revision', header: 'Revision' }
 ]
 
 const cardFields = ['status', 'revision', 'updated_at']
 
-const { data: projects, pending } = await useAsyncData('projects', () =>
-  $fetch<Project[]>('/db/projects/')
+const { data, pending, error } = await useAsyncData(
+  'projects',
+  (_nuxtApp, { signal }) => $fetch<Project[]>('/db/projects/', { signal }),
 )
 
-const projectData = computed(() => projects.value ?? [])
+const isLoading = computed(() => {
+  if (pending) return true;
+  if (error) return true;
+  return false;
+})
 
-const loading = computed(() => projectsPending.value)
 </script>
 
 <template>
@@ -42,15 +45,22 @@ const loading = computed(() => projectsPending.value)
         <UButton icon="i-heroicons-plus" label="New Project" color="primary" to="/projects/new" />
       </div>
     </div>
-
-    <DataTable v-if="projects" :data="projectData" :columns="columns" :card-fields="cardFields" searchable
-      clickable-column="name" default-sort="{ id: 'updated_at', desc: true }" :loading="loading"
-      :on-row-click="(project) => ({ path: `/projects/${project.id}` })" />
-    <UCard v-else>
-      <div class="flex items-center justify-center py-12">
-        <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-primary-500" />
-        <span class="ml-3">Loading projects...</span>
-      </div>
-    </UCard>
+    <template v-if="error">
+      <UAlert 
+        color="error"
+        title="There was a problem loading data"
+        :description="error.message"
+        icon="i-lucide-terminal"
+       />
+    </template>
+    <DataTable 
+      :data="data as Project[]" 
+      :columns="columns" 
+      :card-fields="cardFields" 
+      searchable
+      clickable-column="name" 
+      :default-sort="{ id: 'updated_at', desc: true }" 
+      :loading="!isLoading"
+      :on-row-click="(row) => ({ path: `/projects/${row.original.id}` })" />
   </div>
 </template>

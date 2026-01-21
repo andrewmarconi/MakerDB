@@ -14,7 +14,8 @@ from makerdb.api import app as fastapi_app
 
 application = FastAPI(openapi_url=None, docs_url=None, redoc_url=None)
 
+application.mount("/api", fastapi_app)
+
 admin_asgi = get_asgi_application()
 application.mount("/", admin_asgi)
 
-application.mount("/api", fastapi_app)
