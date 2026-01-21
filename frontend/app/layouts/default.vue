@@ -76,6 +76,8 @@ const links = [
 
 const entityNameCache = useStorage('breadcrumb-entity-names', {})
 
+const breadcrumbs = ref([])
+
 async function fetchEntityName(path, segment, index) {
   const cacheKey = `${path}`
   if (entityNameCache.value[cacheKey]) {
@@ -127,13 +129,16 @@ async function fetchEntityName(path, segment, index) {
   return null
 }
 
-const breadcrumbs = computed(async () => {
+async function updateBreadcrumbs() {
   const parts = route.path.split('/').filter(Boolean)
   const homeBreadcrumb = { label: 'Home', to: '/', icon: 'i-heroicons-home' }
 
-  if (parts.length === 0) return [homeBreadcrumb]
+  if (parts.length === 0) {
+    breadcrumbs.value = [homeBreadcrumb]
+    return
+  }
 
-  const breadcrumbs = [homeBreadcrumb]
+  const crumbs = [homeBreadcrumb]
   let currentPath = ''
 
   for (let i = 0; i < parts.length; i++) {
@@ -143,14 +148,18 @@ const breadcrumbs = computed(async () => {
     const name = await fetchEntityName(currentPath, part, i)
     const label = name || part.charAt(0).toUpperCase() + part.slice(1)
 
-    breadcrumbs.push({
+    crumbs.push({
       label,
       to: currentPath
     })
   }
 
-  return breadcrumbs
-})
+  breadcrumbs.value = crumbs
+}
+
+watch(() => route.path, () => {
+  updateBreadcrumbs()
+}, { immediate: true })
 </script>
 
 <style>
