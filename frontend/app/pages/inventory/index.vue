@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColumnDef } from '@nuxt/ui'
+import type { ColumnDef } from '@tanstack/vue-table'
 
 definePageMeta({
   title: 'Inventory'
@@ -26,21 +26,8 @@ const columns: ColumnDef<Part>[] = [
   { accessorKey: 'total_stock', header: 'Stock' }
 ]
 
-const cardFields = ['part_type', 'total_stock']
+const cardFields = ['part_type', 'total_stock', 'mpn']
 
-const partTypes = [
-  { label: 'All', value: 'All' },
-  { label: 'Linked', value: 'Linked' },
-  { label: 'Local', value: 'Local' },
-  { label: 'Meta', value: 'Meta' },
-  { label: 'Sub-assembly', value: 'Sub-assembly' }
-]
-
-const filterConfig = [
-  { key: 'part_type', label: 'Type', type: 'select', options: partTypes }
-]
-
-const filters = ref<Record<string, any>>({ part_type: 'All' })
 const ITEMS_PER_PAGE = 25
 const page = ref(1)
 const total = ref(0)
@@ -53,11 +40,6 @@ async function fetchParts() {
   try {
     const skip = (page.value - 1) * ITEMS_PER_PAGE
     let url = `/db/parts/?skip=${skip}&limit=${ITEMS_PER_PAGE}`
-
-    const currentFilters = filters.value
-    if (currentFilters.part_type && currentFilters.part_type !== 'All') {
-      url += `&part_type=${currentFilters.part_type}`
-    }
 
     if (sorting.value.length > 0) {
       const sort = sorting.value[0]
@@ -80,18 +62,9 @@ async function fetchParts() {
   }
 }
 
-watch([page, filters, sorting], () => {
-  page.value = 1
+watch([page, sorting], () => {
   fetchParts()
 }, { deep: true })
-
-const filteredItems = computed(() => {
-  if (!parts.value) return []
-  return (parts.value as Part[]).filter((item: Part) => {
-    const matchesType = filters.value.part_type === 'All' || item.part_type === filters.value.part_type?.toLowerCase()
-    return matchesType
-  })
-})
 
 onMounted(fetchParts)
 </script>
@@ -109,40 +82,59 @@ onMounted(fetchParts)
       </div>
     </div>
 
-    <UCard>
-      <DataTableFilter
-        :filters="filterConfig"
-        v-model="filters"
-        @filter-change="() => { page.value = 1 }"
+    <template v-if="pending">
+      <UCard>
+        <div class="flex justify-center py-12">
+          <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-gray-400" />
+        </div>
+      </UCard>
+    </template>
+
+    <template v-else-if="!parts || parts.length === 0">
+      <UCard>
+        <div class="text-center py-12 text-gray-500">
+          <UIcon name="i-heroicons-circle-stack" class="w-12 h-12 mx-auto mb-4 opacity-50" />
+          <p>No parts found.</p>
+        </div>
+      </UCard>
+    </template>
+
+    <DataTable
+      v-else
+      :data="parts as Part[]"
+      :columns="columns"
+      :card-fields="cardFields"
+      clickable-column="name"
+      :default-sort="{ id: 'name', desc: false }"
+      :loading="pending"
+      :on-row-click="(item) => ({ path: `/inventory/${item.id}` })"
+      searchable
+    >
+      <template #part_type-cell="{ row }">
+        <UBadge
+          :color="row.part_type === 'local' ? 'gray' : row.part_type === 'linked' ? 'blue' : row.part_type === 'meta' ? 'purple' : 'green'"
+          variant="subtle"
+          size="sm"
+        >
+          {{ row.part_type }}
+        </UBadge>
+      </template>
+
+      <template #total_stock-cell="{ row }">
+        <div class="font-mono">{{ row.total_stock }}</div>
+      </template>
+    </DataTable>
+
+    <div v-if="total > ITEMS_PER_PAGE" class="flex justify-center">
+      <UPagination
+        v-model:page="page"
+        :total="total"
+        :items-per-page="ITEMS_PER_PAGE"
+        :show-controls="true"
       />
-
-      <div v-if="pending" class="flex justify-center py-12">
-        <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 animate-spin text-gray-400" />
-      </div>
-
-      <div v-else-if="!parts || parts.length === 0" class="text-center py-12 text-gray-500">
-        <UIcon name="i-heroicons-circle-stack" class="w-12 h-12 mx-auto mb-4 opacity-50" />
-        <p>No parts found.</p>
-      </div>
-
-      <DataTable
-        v-else
-        :data="filteredItems"
-        :columns="columns"
-        :card-fields="cardFields"
-        clickable-column="name"
-        :on-row-click="(item) => ({ path: `/inventory/${item.id}` })"
-        :paginatable="false"
-      >
-        <template #part_type-cell="{ row }">
-          <UBadge
-            :color="row.part_type === 'local' ? 'gray' : row.part_type === 'linked' ? 'blue' : row.part_type === 'meta' ? 'purple' : 'green'"
-            variant="subtle"
-            size="sm"
-          >
-            {{ row.part_type }}
-          </UBadge>
-        </template>
+    </div>
+  </div>
+</template>
 
         <template #total_stock-cell="{ row }">
           <div class="font-mono">{{ row.total_stock }}</div>
