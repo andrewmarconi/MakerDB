@@ -148,10 +148,17 @@ async function saveField(field: FieldSchema) {
         body: { [field.key]: value }
       })
     } else {
-      // PUT - send full object
+      // PUT - send only fields defined in schema (not id, timestamps, etc.)
+      const schemaKeys = props.schema.map(s => s.key)
+      const filteredBody: Record<string, any> = {}
+      for (const key of schemaKeys) {
+        if (key in props.modelValue) {
+          filteredBody[key] = props.modelValue[key]
+        }
+      }
       response = await $fetch(`/db${props.endpoint}/${props.entityId}`, {
         method: 'PUT',
-        body: props.modelValue
+        body: filteredBody
       })
     }
 
