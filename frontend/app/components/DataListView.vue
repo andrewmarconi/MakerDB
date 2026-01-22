@@ -2,7 +2,7 @@
 import { useStorage } from '@vueuse/core'
 import type { DropdownMenuItem } from '@nuxt/ui'
 import type { DataListViewProps } from '#shared/types'
-
+import { type ModelKeys, MODEL_REGISTRY } from '#shared/config/models'
 const props = withDefaults(defineProps<DataListViewProps>(), {
   viewMode: 'table',
   canView: true,
@@ -40,8 +40,8 @@ watch(() => props.viewMode, (val) => {
 const columnVisibility = useStorage<Record<string, boolean>>(`datalistview-${storageKey.value}-columns`, {})
 const page = ref(1)
 
-const modelConfig = computed(() => {
-  const config = MODEL_REGISTRY[props.modelKey as ModelKey]
+const modelConfig = computed<typeof MODEL_REGISTRY[ModelKeys]>(() => {
+  const config = MODEL_REGISTRY[props.modelKey as ModelKeys]
   if (!config) {
     console.warn(`Model key "${props.modelKey}" not found in MODEL_REGISTRY`)
   }
@@ -75,13 +75,19 @@ const countQuery = computed(() => {
 
 const { data: items, pending, error, refresh } = await useAsyncData(
   `${props.modelKey}-items`,
-  () => useApiFetch<T[]>(apiPath.value, { params: itemsQuery.value }),
+  async () => {
+    const res = await $fetch<T[]>(apiPath.value, { params: itemsQuery.value })
+    return Array.isArray(res) ? res : []
+  },
   { watch: [itemsQuery] }
 )
 
 const { data: countData } = await useAsyncData(
   `${props.modelKey}-count`,
-  () => useApiFetch<{ count: number }>(`${apiPath.value}/count`, { params: countQuery.value }),
+  async () => {
+    const res = await $fetch<{ count: number }>(`${apiPath.value}/count`, { params: countQuery.value })
+    return res
+  },
   { watch: [countQuery] }
 )
 

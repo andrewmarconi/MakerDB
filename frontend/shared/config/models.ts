@@ -56,4 +56,4 @@ export const MODEL_REGISTRY = {
     },
 } as const;
 
-export type ModelKey = keyof typeof MODEL_REGISTRY;
+export type ModelKeys = keyof typeof MODEL_REGISTRY;
