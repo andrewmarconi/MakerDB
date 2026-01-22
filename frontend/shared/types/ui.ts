@@ -44,7 +44,7 @@ export type DataTableProps<T> = {
 // DataFormView Types
 // ============================================================================
 
-export type FieldType = 'text' | 'textarea' | 'number' | 'select' | 'checkbox' | 'tags' | 'custom';
+export type FieldType = 'text' | 'textarea' | 'number' | 'select' | 'checkbox' | 'tags' | 'search' | 'custom';
 
 export type FieldSchema = {
     /** Field key in modelValue */
@@ -59,6 +59,14 @@ export type FieldSchema = {
     placeholder?: string;
     /** Options for select type */
     options?: { label: string; value: any }[];
+    /** API endpoint for search type */
+    searchEndpoint?: string;
+    /** Query parameter name for search (default: 'search') */
+    searchQueryParam?: string;
+    /** Search result label field (default: 'name') */
+    searchLabelKey?: string;
+    /** Search result value field (default: 'id') */
+    searchValueKey?: string;
     /** Validation function - return error message or null */
     validator?: (value: any) => string | null;
     /** Field-level readonly */
@@ -116,4 +124,37 @@ export type DataFormViewTabsProps = {
     layout?: 'single' | 'two-column';
     /** Disable all editing */
     readonly?: boolean;
+};
+
+// ============================================================================
+// DataFormInlineView Types
+// ============================================================================
+
+export type InlineDisplayColumn = {
+    key: string;
+    label: string;
+    render?: (item: any) => any;
+};
+
+export type DataFormInlineViewProps = {
+    /** List of related objects to display/edit */
+    items: any[];
+    /** Schema for editable fields (display + inline edit) */
+    itemSchema: FieldSchema[];
+    /** Non-editable display columns */
+    displayColumns?: InlineDisplayColumn[];
+    /** API endpoint base (e.g., '/projects/{id}/bom') */
+    baseEndpoint: string;
+    /** Section title */
+    title: string;
+    /** Add button label */
+    addButtonLabel?: string;
+    /** Empty state message */
+    emptyStateMessage?: string;
+    /** Allow editing */
+    canEdit?: boolean;
+    /** Allow deletion */
+    canDelete?: boolean;
+    /** Loading state */
+    loading?: boolean;
 };

@@ -13,12 +13,10 @@ useSeoMeta({
 
 const columns: ColumnDef<InventoryLocation>[] = [
   { accessorKey: 'name', header: 'Location Name' },
-  { accessorKey: 'description', header: 'Description' },
-  { accessorKey: 'children_count', header: 'Sub-locations' },
-  { accessorKey: 'created_at', header: 'Created' }
+  { accessorKey: 'description', header: 'Description' }
 ]
 
-const cardFields = ['description', 'children_count', 'created_at']
+const cardFields = ['description',]
 
 const { data, pending, error, refresh } = await useAsyncData(
   'locations',
@@ -53,20 +51,20 @@ async function handleDelete() {
 }
 
 const cardActions = computed(() => [
-  {
-    label: 'Edit',
-    icon: 'i-heroicons-pencil-square',
-    onClick: (item: InventoryLocation) => navigateTo(`/locations/${item.id}/edit`)
-  },
-  {
-    label: 'Delete',
-    icon: 'i-heroicons-trash',
-    variant: 'destructive' as const,
-    onClick: (item: InventoryLocation) => {
-      locationToDelete.value = item
-      showDeleteModal.value = true
-    }
-  }
+  // {
+  //   label: 'Edit',
+  //   icon: 'i-heroicons-pencil-square',
+  //   onClick: (item: InventoryLocation) => navigateTo(`/locations/${item.id}/edit`)
+  // },
+  // {
+  //   label: 'Delete',
+  //   icon: 'i-heroicons-trash',
+  //   variant: 'destructive' as const,
+  //   onClick: (item: InventoryLocation) => {
+  //     locationToDelete.value = item
+  //     showDeleteModal.value = true
+  //   }
+  // }
 ])
 </script>
 
@@ -74,8 +72,8 @@ const cardActions = computed(() => [
   <div class="space-y-6">
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold">Storage InventoryLocations</h1>
-        <p class="text-gray-500 dark:text-gray-400">Browse and manage your storage hierarchy.</p>
+        <h1 class="text-2xl font-bold">Storage Locations</h1>
+        <p class="text-gray-500 dark:text-gray-400">Browse and manage your storage locations.</p>
       </div>
       <div class="flex items-center gap-2">
         <UButton icon="i-heroicons-plus" label="Add Location" color="primary" to="/locations/new" />
@@ -83,40 +81,35 @@ const cardActions = computed(() => [
     </div>
     <template v-if="error">
       <UAlert 
-        color="error"
-        title="There was a problem loading data"
+        color="error" 
+        title="There was a problem loading data" 
         :description="error.message"
-        icon="i-lucide-terminal"
-      />
+        icon="i-lucide-terminal" />
     </template>
     <DataTable 
       :data="(data || []) as InventoryLocation[]" 
       :columns="columns" 
-      :card-fields="cardFields" 
-      :card-actions="cardActions"
-      searchable
+      :card-fields="cardFields"
+      :card-actions="cardActions" 
+      searchable 
       clickable-column="name" 
-      :default-sort="{ id: 'name', desc: false }" 
-      :loading="isLoading"
-      :on-row-click="(item) => ({ path: `/locations/${item.id}` })">
-      <template #children_count-cell="{ row }">
-        <div class="flex items-center gap-1">
-          <UIcon name="i-heroicons-folder" class="w-4 h-4 text-warning" />
-          <span>{{ row.children_count }} sub-locations</span>
-        </div>
-      </template>
-    </DataTable>
-
+      :default-sort="{ id: 'name', desc: false }"
+      :loading="isLoading" 
+      :on-row-click="(item) => ({ path: `/locations/${item.id}` })" />
     <UModal v-model:open="showDeleteModal">
       <template #header>
         <h3 class="text-lg font-semibold">Delete Location</h3>
       </template>
-
       <template #body>
         <p class="text-gray-600 dark:text-gray-400">
           Are you sure you want to delete <strong>{{ locationToDelete?.name }}</strong>? This action cannot be undone.
         </p>
-        <UAlert v-if="deleteError" color="error" variant="subtle" icon="i-heroicons-exclamation-circle" class="mt-4"
+        <UAlert 
+          v-if="deleteError" 
+          color="error" 
+          variant="subtle" 
+          icon="i-heroicons-exclamation-circle" 
+          class="mt-4"
           :description="deleteError" />
       </template>
 

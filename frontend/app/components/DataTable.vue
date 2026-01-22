@@ -261,9 +261,8 @@ const columnToggleItems = computed<DropdownMenuItem[]>(() => {
             </slot>
           </div>
 
-          <template #footer>
+          <template v-if="cardActions && cardActions.length > 0" #footer>
             <UDropdownMenu
-              v-if="cardActions && cardActions.length > 0"
               :items="cardActions.map(action => ({
                 label: action.label,
                 icon: action.icon,
@@ -272,7 +271,7 @@ const columnToggleItems = computed<DropdownMenuItem[]>(() => {
             >
               <UButton icon="i-heroicons-ellipsis-horizontal" variant="ghost" color="neutral" />
             </UDropdownMenu>
-            <slot v-else name="card-footer" :item="item" />
+            
           </template>
         </UCard>
       </div>

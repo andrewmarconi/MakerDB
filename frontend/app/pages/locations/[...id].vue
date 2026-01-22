@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { FieldSchema, TabSchema } from '~/shared/types/ui'
-import DataFormView from '~/components/DataFormView.vue'
+import type { FieldSchema } from '#shared/types/ui'
 
 definePageMeta({
   title: 'Storage Location'
@@ -15,7 +14,6 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 
-// Parse the hierarchical path
 const currentPathIds = computed(() => {
   const ids = route.params.id || []
   return Array.isArray(ids) ? ids : [ids]
@@ -26,16 +24,13 @@ const currentLocationId = computed(() => {
   return ids.length > 0 ? ids[ids.length - 1] : null
 })
 
-// Fetch current location data (for editing)
 const { data: location, refresh: refreshLocation } = await useApiFetch(
   `/inventory/locations/${currentLocationId.value}`,
   { immediate: !!currentLocationId.value }
 )
 
-// Fetch all locations (for navigation and parent selection)
 const { data: locations, refresh: refreshLocations } = await useApiFetch('/inventory/locations')
 
-// Compute the breadcrumb path
 const path = computed(() => {
   const result: any[] = []
   if (!locations.value || !currentLocationId.value) return result
@@ -44,46 +39,24 @@ const path = computed(() => {
   return result
 })
 
-// Child locations at current level
-const childLocations = computed(() => {
-  if (!locations.value) return []
-  if (!currentLocationId.value) {
-    return locations.value
-  }
-  return []
-})
+const { data: stockAtLocation, refresh: refreshStock } = await useApiFetch(
+  `/inventory/locations/${currentLocationId.value}/stock`,
+  { immediate: !!currentLocationId.value }
+)
 
-// Stock at this location
-const { data: allStock } = await useApiFetch('/inventory/stock')
-
-const stockAtLocation = computed(() => {
-  if (!allStock.value || !currentLocationId.value) return []
-  return allStock.value.filter((s: any) => s.storage?.id === currentLocationId.value)
-})
-
-// Schema for Details tab
 const detailsSchema: FieldSchema[] = [
   { key: 'name', label: 'Location Name', type: 'text', required: true, span: 2 },
   { key: 'description', label: 'Description', type: 'textarea', span: 2 },
   { key: 'tags', label: 'Tags', type: 'tags', span: 2 },
 ]
 
-// Tab definitions
 const tabs = [
-  { label: 'Details', icon: 'i-heroicons-information-circle' },
-  { label: 'Sub-Locations', icon: 'i-heroicons-squares-2x2' },
-  { label: 'Parts', icon: 'i-heroicons-cube' },
+  { label: 'Details', icon: 'i-heroicons-information-circle', value: 'details', slot: 'details' },
+  { label: 'Stock', icon: 'i-heroicons-cube', value: 'stock', slot: 'stock' },
 ]
 
-const activeTab = ref(0)
+const activeTab = ref('details')
 
-// Handle navigation to child location
-function navigateToChild(childId: string) {
-  const newPath = [...currentPathIds.value, childId]
-  router.push(`/locations/${newPath.join('/')}`)
-}
-
-// Handle save events from DataFormView
 async function handleSave(field: string, value: any, response: any) {
   toast.add({ title: `${field} updated`, icon: 'i-heroicons-check-circle' })
   if (response) {
@@ -97,7 +70,6 @@ function handleSaveError(field: string, error: Error) {
   toast.add({ title: `Failed to update ${field}`, description: error.message, color: 'error' })
 }
 
-// Delete functionality
 const showDeleteModal = ref(false)
 const isDeleting = ref(false)
 
@@ -116,19 +88,66 @@ async function handleDelete() {
     showDeleteModal.value = false
   }
 }
+
+const stockItemSchema: FieldSchema[] = [
+  { key: 'quantity', label: 'Qty', type: 'number', required: true },
+  {
+    key: 'status', label: 'Status', type: 'select', options: [
+      { label: 'Available', value: 'available' },
+      { label: 'Reserved', value: 'reserved' },
+      { label: 'Allocated', value: 'allocated' },
+      { label: 'Ordered', value: 'ordered' },
+    ]
+  },
+]
+
+const stockDisplayColumns = [
+  {
+    key: 'part',
+    label: 'Part',
+    render: (item: any) => {
+      if (!item.part) return h('span', { class: 'text-gray-400' }, '-')
+      return h(NuxtLink, { to: `/inventory/${item.part.id}`, class: 'text-primary-500 hover:underline font-medium' }, () => item.part.name)
+    }
+  },
+  {
+    key: 'part_mpn',
+    label: 'MPN',
+    render: (item: any) => {
+      if (!item.part?.mpn) return '-'
+      return h('span', { class: 'font-mono text-gray-500 text-sm' }, item.part.mpn)
+    }
+  },
+  {
+    key: 'lot',
+    label: 'Lot',
+    render: (item: any) => {
+      if (!item.lot) return '-'
+      return h('span', { class: 'text-sm' }, item.lot.name)
+    }
+  },
+]
+
+async function handleStockUpdated(item: any) {
+  toast.add({ title: 'Stock updated' })
+  await refreshStock()
+}
+
+async function handleStockDeleted(id: string) {
+  toast.add({ title: 'Stock entry removed' })
+  await refreshStock()
+}
+
+async function handleStockRefresh() {
+  await refreshStock()
+}
 </script>
 
 <template>
   <div class="space-y-6">
-    <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div class="flex items-center gap-4">
-        <UButton
-          variant="ghost"
-          color="neutral"
-          icon="i-heroicons-arrow-left"
-          to="/locations"
-        />
+        <UButton variant="ghost" color="neutral" icon="i-heroicons-arrow-left" to="/locations" />
         <div>
           <h1 class="text-2xl font-bold">
             {{ location?.name || 'Storage Locations' }}
@@ -137,28 +156,16 @@ async function handleDelete() {
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <UButton icon="i-heroicons-plus" label="Add Sub-location" color="primary" variant="outline" />
-        <LabelPreview
-          v-if="location"
-          :label="location.name"
-          :sublabel="location.description || 'Storage'"
-          :id="`LOC-${location.id}`"
-        />
-        <UButton
-          v-if="location"
-          icon="i-heroicons-trash"
-          color="error"
-          variant="ghost"
-          @click="showDeleteModal = true"
-        />
+        <LabelPreview v-if="location" :label="location.name" :sublabel="location.description || 'Storage'"
+          :id="`LOC-${location.id}`" />
+        <UButton v-if="location" icon="i-heroicons-trash" color="error" variant="ghost"
+          @click="showDeleteModal = true" />
       </div>
     </div>
 
-    <!-- Main Content with Tabs -->
-    <UTabs v-if="location" v-model="activeTab" :items="tabs" class="w-full">
-      <!-- Details Tab -->
-      <template #item="{ index }">
-        <UCard class="mt-4">
+    <UTabs v-model="activeTab" :items="tabs" class="w-full">
+      <template #details>
+        <UCard>
           <template #header>
             <div class="flex items-center justify-between">
               <h3 class="font-semibold">Location Details</h3>
@@ -182,101 +189,33 @@ async function handleDelete() {
         </UCard>
       </template>
 
-      <!-- Sub-Locations Tab -->
-      <template #item="{ index }">
-        <div v-if="index === 1" class="mt-4 space-y-4">
-          <!-- Child Locations Grid -->
-          <div v-if="childLocations.length > 0" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            <UCard
-              v-for="child in childLocations"
-              :key="child.id"
-              class="cursor-pointer hover:ring-2 hover:ring-primary-500 transition-all group"
-              @click="navigateToChild(child.id)"
-            >
-              <div class="flex items-center gap-3">
-                <div class="p-2 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
-                  <UIcon name="i-heroicons-archive-box" class="w-6 h-6" />
-                </div>
-                <div>
-                  <div class="font-semibold">{{ child.name }}</div>
-                  <div class="text-xs text-gray-500">{{ child.description || 'No description' }}</div>
-                </div>
-              </div>
-            </UCard>
-          </div>
-
-          <!-- Empty state for sub-locations -->
-          <UCard v-else class="text-center py-12 bg-gray-50/50 dark:bg-gray-900/50 border-dashed">
-            <UIcon name="i-heroicons-archive-box-x-mark" class="w-12 h-12 mx-auto text-gray-300 mb-2" />
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white">No sub-locations</h3>
-            <p class="text-gray-500">This location has no child locations defined.</p>
-            <UButton label="Add First Sub-location" variant="link" color="primary" class="mt-2" />
-          </UCard>
-        </div>
-      </template>
-
-      <!-- Parts Tab -->
-      <template #item="{ index }">
-        <UCard v-if="index === 2" class="mt-4">
-          <template #header>
-            <div class="flex items-center justify-between">
-              <div class="flex flex-col">
-                <h3 class="font-semibold">Parts at {{ location.name }}</h3>
-                <p class="text-xs text-gray-500">Items physically stored in this location.</p>
-              </div>
-              <UBadge v-if="stockAtLocation.length > 0" color="primary" variant="subtle">
-                {{ stockAtLocation.length }} item{{ stockAtLocation.length !== 1 ? 's' : '' }}
-              </UBadge>
-            </div>
-          </template>
-
-          <div v-if="stockAtLocation.length > 0" class="divide-y divide-gray-200 dark:divide-gray-700">
-            <div
-              v-for="stock in stockAtLocation"
-              :key="stock.id"
-              class="flex items-center justify-between py-3 px-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded"
-            >
-              <div class="flex items-center gap-3">
-                <UIcon name="i-heroicons-cube" class="w-5 h-5 text-gray-400" />
-                <div>
-                  <NuxtLink
-                    :to="`/inventory/${stock.part_id}`"
-                    class="font-medium text-primary-600 hover:underline"
-                  >
-                    Part #{{ stock.part_id.substring(0, 8) }}...
-                  </NuxtLink>
-                  <div v-if="stock.lot" class="text-xs text-gray-500">
-                    Lot: {{ stock.lot.name }}
-                  </div>
-                </div>
-              </div>
-              <div class="flex items-center gap-4">
-                <div class="text-right">
-                  <div class="font-semibold">{{ stock.quantity }}</div>
-                  <div v-if="stock.status" class="text-xs text-gray-500">{{ stock.status }}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div v-else class="text-sm text-gray-500 italic p-4 text-center">
-            No parts currently assigned to this location.
-          </div>
-        </UCard>
+      <template #stock>
+        <DataFormInlineView
+          :items="stockAtLocation || []"
+          :item-schema="stockItemSchema"
+          :display-columns="stockDisplayColumns"
+          :base-endpoint="`/inventory/stock`"
+          title="Stock at this Location"
+          empty-state-message="No stock at this location."
+          @item-updated="handleStockUpdated"
+          @item-deleted="handleStockDeleted"
+          @refresh="handleStockRefresh"
+        />
       </template>
     </UTabs>
 
-    <!-- Top-level locations list (when no specific location selected) -->
-    <div v-if="!currentLocationId && locations">
+    <div v-if="!currentLocationId && locations" class="space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl font-semibold">Storage Locations</h2>
+        <UButton icon="i-heroicons-plus" label="New Location" color="primary" to="/locations/new" />
+      </div>
       <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        <UCard
-          v-for="loc in locations"
-          :key="loc.id"
+        <UCard v-for="loc in locations" :key="loc.id"
           class="cursor-pointer hover:ring-2 hover:ring-primary-500 transition-all group"
-          @click="navigateToChild(loc.id)"
-        >
+          @click="navigateToChild(loc.id)">
           <div class="flex items-center gap-3">
-            <div class="p-2 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
+            <div
+              class="p-2 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
               <UIcon name="i-heroicons-archive-box" class="w-6 h-6" />
             </div>
             <div>
@@ -288,7 +227,6 @@ async function handleDelete() {
       </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
     <UModal v-model:open="showDeleteModal">
       <template #content>
         <UCard>
@@ -304,12 +242,7 @@ async function handleDelete() {
           <template #footer>
             <div class="flex items-center justify-end gap-3">
               <UButton label="Cancel" color="neutral" variant="ghost" @click="showDeleteModal = false" />
-              <UButton
-                label="Delete"
-                color="error"
-                :loading="isDeleting"
-                @click="handleDelete"
-              />
+              <UButton label="Delete" color="error" :loading="isDeleting" @click="handleDelete" />
             </div>
           </template>
         </UCard>

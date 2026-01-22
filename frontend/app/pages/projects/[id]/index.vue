@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import type { FieldSchema } from '~/shared/types/ui'
+import DataFormView from '~/components/DataFormView.vue'
+import DataFormInlineView from '~/components/DataFormInlineView.vue'
+
 definePageMeta({
   title: 'Project Details'
 })
@@ -9,40 +13,41 @@ useSeoMeta({
 })
 
 const route = useRoute()
-const router = useRouter()
 const toast = useToast()
 
 const projectId = route.params.id as string
 
 const { data: project, refresh: refreshProject } = await useApiFetch(`/projects/${projectId}`)
 const { data: bomItems, refresh: refreshBOM } = await useApiFetch(`/projects/${projectId}/bom`)
+const { data: attachments, refresh: refreshAttachments } = await useApiFetch(`/projects/${projectId}/attachments`)
 
-const { data: availableParts } = await useApiFetch('/parts/')
+const tabs = [
+  { label: 'Details', icon: 'i-heroicons-information-circle', value: 'details', slot: 'details' },
+  { label: 'Bill of Materials', icon: 'i-heroicons-list-bullet', value: 'bom', slot: 'bom' },
+  { label: 'Attachments', icon: 'i-heroicons-paper-clip', value: 'attachments', slot: 'attachments' },
+]
 
-const tabItems = [
-  { label: 'Overview', icon: 'i-heroicons-information-circle', value: 'overview' },
-  { label: 'BOM Management', icon: 'i-heroicons-list-bullet', value: 'bom' },
-  { label: 'Build History', icon: 'i-heroicons-wrench-screwdriver', value: 'build' },
-  { label: 'Documentation', icon: 'i-heroicons-document-text', value: 'docs' }
-] as any[]
+const activeTab = ref('details')
+
+const bomFormRef = ref()
+
+function initBOMAddForm() {
+  if (bomFormRef.value) {
+    bomFormRef.value.initNewItemForm()
+  }
+}
 
 const searchQuery = ref('')
-const editingItem = ref<string | null>(null)
-const showAddModal = ref(false)
-const isSaving = ref(false)
 
-const editForm = ref({
-  quantity: 1,
-  designators: ''
+const matchedCount = computed(() => {
+  if (!bomItems.value) return 0
+  return (bomItems.value as any[]).filter((item: any) => item.part).length
 })
 
-const addForm = ref({
-  partId: null as string | null,
-  quantity: 1,
-  designators: ''
+const totalQuantity = computed(() => {
+  if (!bomItems.value) return 0
+  return (bomItems.value as any[]).reduce((sum: number, item: any) => sum + (item.quantity || 0), 0)
 })
-
-const partSearchQuery = ref('')
 
 const filteredBOMItems = computed(() => {
   if (!bomItems.value) return []
@@ -55,128 +60,149 @@ const filteredBOMItems = computed(() => {
   )
 })
 
-const matchedCount = computed(() => {
-  if (!bomItems.value) return 0
-  return (bomItems.value as any[]).filter((item: any) => item.part).length
-})
-
-const totalQuantity = computed(() => {
-  if (!bomItems.value) return 0
-  return (bomItems.value as any[]).reduce((sum: number, item: any) => sum + (item.quantity || 0), 0)
-})
-
-const filteredParts = computed(() => {
-  if (!availableParts.value) return []
-  if (!partSearchQuery.value) return []
-  const query = partSearchQuery.value.toLowerCase()
-  return (availableParts.value as any[]).filter((part: any) =>
-    part.name.toLowerCase().includes(query) ||
-    part.mpn.toLowerCase().includes(query)
-  )
-})
-
-const selectedPart = computed(() => {
-  if (!addForm.value.partId || !availableParts.value) return null
-  return (availableParts.value as any[]).find((p: any) => p.id === addForm.value.partId)
-})
-
 const canEdit = computed(() => {
   if (!project.value) return false
   const status = (project as any).status
   return status === 'draft' || status === 'active'
 })
 
-function startEdit(item: any) {
-  editingItem.value = item.id
-  editForm.value = {
-    quantity: item.quantity,
-    designators: item.designators || ''
+const detailsSchema: FieldSchema[] = [
+  { key: 'name', label: 'Project Name', type: 'text', required: true, span: 2 },
+  { key: 'revision', label: 'Revision', type: 'text', span: 1 },
+  { key: 'status', label: 'Status', type: 'select', options: [
+    { label: 'Draft', value: 'draft' },
+    { label: 'Active', value: 'active' },
+    { label: 'Archived', value: 'archived' },
+  ], span: 1 },
+  { key: 'description', label: 'Description', type: 'textarea', span: 2 },
+  { key: 'notes', label: 'Notes', type: 'textarea', span: 2 },
+]
+
+const bomItemSchema: FieldSchema[] = [
+  { key: 'part_id', label: 'Part', type: 'search', searchEndpoint: '/parts/search', searchLabelKey: 'name', searchQueryParam: 'q', required: true },
+  { key: 'quantity', label: 'Qty', type: 'number', required: true },
+  { key: 'designators', label: 'Reference', type: 'text' },
+]
+
+const bomDisplayColumns = [
+  {
+    key: 'mpn',
+    label: 'MPN',
+    render: (item: any) => {
+      if (!item.part?.mpn) return '-'
+      return h('span', { class: 'font-mono text-gray-500 text-sm' }, item.part.mpn)
+    }
+  },
+  {
+    key: 'stock',
+    label: 'Stock',
+    render: (item: any) => {
+      if (!item.part) return '-'
+      const hasStock = (item.part.stock_entries?.total_quantity || 0) >= item.quantity
+      const color = hasStock ? 'success' : 'warning'
+      const count = item.part.stock_entries?.total_quantity || 0
+      return h(UBadge, { color, size: 'sm', variant: 'subtle' }, () => count)
+    }
+  },
+]
+
+async function handleSave(field: string, value: any, response: any) {
+  toast.add({ title: `${field} updated`, icon: 'i-heroicons-check-circle' })
+  if (response) {
+    project.value = response
   }
+  await refreshProject()
 }
 
-function cancelEdit() {
-  editingItem.value = null
+function handleSaveError(field: string, error: Error) {
+  toast.add({ title: `Failed to update ${field}`, description: error.message, color: 'error' })
 }
 
-async function saveEdit(item: any) {
-  if (!editingItem.value) return
+async function handleBOMAdded(item: any) {
+  toast.add({ title: 'Component added to BOM' })
+  await refreshBOM()
+}
 
-  isSaving.value = true
+async function handleBOMUpdated(item: any) {
+  toast.add({ title: 'BOM item updated' })
+  await refreshBOM()
+}
+
+async function handleBOMDeleted(id: string) {
+  toast.add({ title: 'Item removed from BOM' })
+  await refreshBOM()
+}
+
+async function handleBOMRefresh() {
+  await refreshBOM()
+}
+
+const isUploading = ref(false)
+const fileInputRef = ref<HTMLInputElement | null>(null)
+
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
+function getFileIcon(contentType: string): string {
+  if (contentType.startsWith('image/')) return 'i-heroicons-photo'
+  if (contentType === 'application/pdf') return 'i-heroicons-document-text'
+  return 'i-heroicons-document'
+}
+
+function isPreviewable(contentType: string): boolean {
+  return contentType.startsWith('image/') || contentType === 'application/pdf'
+}
+
+async function handleFileUpload(files: FileList | null) {
+  if (!files || files.length === 0) return
+
+  isUploading.value = true
+
+  for (const file of Array.from(files)) {
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      await $fetch(`/projects/${projectId}/attachments`, {
+        method: 'POST',
+        body: formData
+      })
+
+      toast.add({ title: `Uploaded ${file.name}`, icon: 'i-heroicons-check-circle' })
+      await refreshAttachments()
+    } catch (err: any) {
+      toast.add({ title: `Failed to upload ${file.name}`, description: err.message, color: 'error' })
+    }
+  }
+
+  isUploading.value = false
+  if (fileInputRef.value) fileInputRef.value.value = ''
+}
+
+function onFileChange(e: Event) {
+  const target = e.target as HTMLInputElement
+  handleFileUpload(target.files)
+}
+
+async function handleDeleteAttachment(attachment: any) {
+  if (!confirm(`Delete "${attachment.filename}"?`)) return
+
   try {
-    await useApiFetch(`/projects/${projectId}/bom/${item.id}`, {
-      method: 'PUT',
-      body: {
-        quantity: editForm.value.quantity,
-        designators: editForm.value.designators
-      }
-    })
-    await refreshBOM()
-    editingItem.value = null
-    toast.add({ title: 'BOM item updated' })
+    await $fetch(`/projects/${projectId}/attachments/${attachment.id}`, { method: 'DELETE' })
+    toast.add({ title: 'Attachment deleted', icon: 'i-heroicons-check-circle' })
+    await refreshAttachments()
   } catch (err: any) {
-    toast.add({ title: 'Failed to update', description: err.message, color: 'error' })
-  } finally {
-    isSaving.value = false
+    toast.add({ title: 'Failed to delete attachment', description: err.message, color: 'error' })
   }
 }
 
-async function deleteItem(item: any) {
-  if (!confirm(`Remove "${item.part?.name || 'this item'}" from BOM?`)) return
-
-  try {
-    await useApiFetch(`/projects/${projectId}/bom/${item.id}`, { method: 'DELETE' })
-    await refreshBOM()
-    toast.add({ title: 'Item removed from BOM' })
-  } catch (err: any) {
-    toast.add({ title: 'Failed to remove', description: err.message, color: 'error' })
-  }
-}
-
-function openAddModal() {
-  addForm.value = { partId: null, quantity: 1, designators: '' }
-  partSearchQuery.value = ''
-  showAddModal.value = true
-}
-
-function closeAddModal() {
-  showAddModal.value = false
-  addForm.value = { partId: null, quantity: 1, designators: '' }
-}
-
-async function addItem() {
-  if (!addForm.value.partId) {
-    toast.add({ title: 'Please select a part', color: 'warning' })
-    return
-  }
-
-  isSaving.value = true
-  try {
-    await useApiFetch(`/projects/${projectId}/bom`, {
-      method: 'POST',
-      body: {
-        part_id: addForm.value.partId,
-        quantity: addForm.value.quantity,
-        designators: addForm.value.designators
-      }
-    })
-    await refreshBOM()
-    closeAddModal()
-    toast.add({ title: 'Item added to BOM' })
-  } catch (err: any) {
-    toast.add({ title: 'Failed to add item', description: err.message, color: 'error' })
-  } finally {
-    isSaving.value = false
-  }
-}
-
-function selectPart(part: any) {
-  addForm.value.partId = part.id
-}
-
-function getStatusColor(item: any) {
-  if (!item.part) return 'warning'
-  if (item.part?.stock_entries?.total_quantity >= item.quantity) return 'success'
-  return 'warning'
+function downloadAttachment(attachment: any) {
+  navigateTo(`/db/attachments/${attachment.id}/download`, { external: true })
 }
 </script>
 
@@ -195,19 +221,38 @@ function getStatusColor(item: any) {
           <p class="text-gray-500 dark:text-gray-400">{{ (project as any).description || 'No description' }}</p>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <UButton label="Edit" icon="i-heroicons-pencil" variant="outline" :to="`/projects/${projectId}/edit`" />
-        <UButton label="Import BOM" icon="i-heroicons-arrow-up-tray" color="primary" :to="`/projects/${projectId}/bom/import`" />
-        <UDropdown-menu
-          :items="[[{ label: 'Export BOM', icon: 'i-heroicons-arrow-down-tray' }, { label: 'Archive Project', icon: 'i-heroicons-archive-box' }]]">
-          <UButton variant="ghost" color="neutral" icon="i-heroicons-ellipsis-horizontal" />
-        </UDropdown-menu>
-      </div>
     </div>
 
-    <UTabs :items="tabItems" class="w-full">
-      <template #item="slotProps: any">
-        <div v-if="slotProps.item.value === 'overview'" class="space-y-6">
+    <UTabs v-model="activeTab" :items="tabs" class="w-full">
+      <template #details>
+        <UCard>
+          <template #header>
+            <div class="flex items-center justify-between">
+              <h3 class="font-semibold">Project Details</h3>
+              <UBadge variant="subtle" color="neutral">
+                <UIcon name="i-heroicons-pencil" class="w-3 h-3 mr-1" />
+                Click any field to edit
+              </UBadge>
+            </div>
+          </template>
+
+          <DataFormView
+            v-model="project"
+            :schema="detailsSchema"
+            endpoint="/projects"
+            :entity-id="projectId"
+            save-mode="put"
+            layout="two-column"
+            @save="handleSave"
+            @save-error="handleSaveError"
+          />
+        </UCard>
+
+        <UCard class="mt-4">
+          <template #header>
+            <h3 class="font-semibold">Overview</h3>
+          </template>
+
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <UCard>
               <div class="text-sm text-gray-500">BOM Items</div>
@@ -226,167 +271,73 @@ function getStatusColor(item: any) {
               <div class="text-2xl font-bold mt-1">{{ (project as any).revision || '1.0' }}</div>
             </UCard>
           </div>
+        </UCard>
+      </template>
 
-          <UCard v-if="(project as any).notes">
-            <template #header>
-              <h3 class="font-semibold">Notes</h3>
-            </template>
-            <div class="prose prose-sm dark:prose-invert max-w-none">
-              {{ (project as any).notes }}
-            </div>
-          </UCard>
+      <template #bom>
+        <div class="space-y-4">
+          <div class="flex justify-end">
+            <UButton
+              label="New Component"
+              icon="i-heroicons-plus"
+              color="primary"
+              size="sm"
+              @click="initBOMAddForm"
+            />
+          </div>
+          <DataFormInlineView
+            ref="bomFormRef"
+            :items="filteredBOMItems"
+            :item-schema="bomItemSchema"
+            :display-columns="bomDisplayColumns"
+            :base-endpoint="`/projects/${projectId}/bom`"
+            :can-edit="canEdit"
+            empty-state-message="No BOM items yet. Add components or import a BOM."
+            @item-added="handleBOMAdded"
+            @item-updated="handleBOMUpdated"
+            @item-deleted="handleBOMDeleted"
+            @refresh="handleBOMRefresh"
+          />
         </div>
+      </template>
 
-        <div v-if="slotProps.item.value === 'bom'" class="space-y-4">
-          <UCard>
-            <template #header>
-              <div class="flex items-center justify-between">
-                <h3 class="font-semibold">Bill of Materials</h3>
-                <div class="flex items-center gap-2">
-                  <UInput v-model="searchQuery" icon="i-heroicons-magnifying-glass" placeholder="Search..."
-                    size="sm" class="w-64" />
-                  <UButton v-if="canEdit" label="Add Item" icon="i-heroicons-plus" variant="soft" color="neutral" size="sm" @click="openAddModal" />
+      <template #attachments>
+        <UCard>
+          <template #header>
+            <div class="flex items-center justify-between">
+              <h3 class="font-semibold">Attachments</h3>
+              <UButton label="Upload File" icon="i-heroicons-cloud-arrow-up" color="primary" variant="soft" :loading="isUploading" @click="fileInputRef?.click()" />
+            </div>
+          </template>
+
+          <input ref="fileInputRef" type="file" multiple class="hidden" @change="onFileChange" />
+
+          <div v-if="attachments && (attachments as any[]).length > 0" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <UCard v-for="file in attachments" :key="file.id" class="group relative hover:shadow-md transition-shadow">
+              <div class="flex items-center gap-3">
+                <div class="p-2 bg-gray-100 dark:bg-gray-800 rounded cursor-pointer" @click="isPreviewable(file.content_type) && navigateTo(`/db/attachments/${file.id}/download`, { external: true })">
+                  <UIcon :name="getFileIcon(file.content_type)" class="w-8 h-8" :class="isPreviewable(file.content_type) ? 'text-primary' : 'text-gray-500'" />
+                </div>
+                <div class="flex-1 min-w-0 cursor-pointer" @click="navigateTo(`/db/attachments/${file.id}/download`, { external: true })">
+                  <div class="text-sm font-medium truncate">{{ file.filename }}</div>
+                  <div class="text-xs text-gray-500">{{ formatFileSize(file.size) }}</div>
+                </div>
+                <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <UButton icon="i-heroicons-arrow-down-tray" variant="ghost" color="neutral" size="xs" @click="downloadAttachment(file)" />
+                  <UButton icon="i-heroicons-trash" variant="ghost" color="error" size="xs" @click="handleDeleteAttachment(file)" />
                 </div>
               </div>
-            </template>
+            </UCard>
+          </div>
 
-            <div v-if="filteredBOMItems.length > 0" class="overflow-x-auto">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="border-b border-gray-200 dark:border-gray-700">
-                    <th class="text-left py-3 px-4 font-medium">Reference</th>
-                    <th class="text-left py-3 px-4 font-medium">Part</th>
-                    <th class="text-left py-3 px-4 font-medium">MPN</th>
-                    <th class="text-left py-3 px-4 font-medium">Qty</th>
-                    <th class="text-left py-3 px-4 font-medium">Stock</th>
-                    <th class="text-right py-3 px-4 font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="item in filteredBOMItems" :key="item.id"
-                    class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                    <td class="py-3 px-4">
-                      <span v-if="editingItem !== item.id">{{ item.designators || '-' }}</span>
-                      <UInput v-else v-model="editForm.designators" size="sm" class="w-32" />
-                    </td>
-                    <td class="py-3 px-4">
-                      <NuxtLink v-if="item.part" :to="`/inventory/${item.part.id}`"
-                        class="text-primary-500 hover:underline font-medium">
-                        {{ item.part.name }}
-                      </NuxtLink>
-                      <span v-else class="text-amber-600 font-medium">Unmatched</span>
-                    </td>
-                    <td class="py-3 px-4 font-mono text-gray-500">
-                      {{ item.part?.mpn || '-' }}
-                    </td>
-                    <td class="py-3 px-4">
-                      <span v-if="editingItem !== item.id">{{ item.quantity }}</span>
-                      <UInput v-else v-model.number="editForm.quantity" type="number" size="sm" class="w-20" />
-                    </td>
-                    <td class="py-3 px-4">
-                      <UBadge v-if="item.part" :color="getStatusColor(item)" size="sm">
-                        {{ item.part.stock_entries?.total_quantity || 0 }}
-                      </UBadge>
-                      <span v-else class="text-gray-400">-</span>
-                    </td>
-                    <td class="py-3 px-4 text-right">
-                      <div class="flex items-center justify-end gap-1">
-                        <template v-if="editingItem === item.id">
-                          <UButton icon="i-heroicons-check" size="xs" color="success" variant="ghost"
-                            :loading="isSaving" @click="saveEdit(item)" />
-                          <UButton icon="i-heroicons-x-mark" size="xs" color="neutral" variant="ghost"
-                            @click="cancelEdit" />
-                        </template>
-                        <template v-else>
-                          <UButton icon="i-heroicons-pencil" size="xs" variant="ghost" color="neutral"
-                            @click="startEdit(item)" />
-                          <UButton icon="i-heroicons-trash" size="xs" variant="ghost" color="error"
-                            @click="deleteItem(item)" />
-                        </template>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div v-else class="flex flex-col items-center justify-center p-12 text-gray-400">
-              <UIcon name="i-heroicons-document-plus" class="w-12 h-12 mb-2 opacity-50" />
-              <p>No BOM items yet.</p>
-              <UButton v-if="canEdit" label="Add Item" variant="link" color="primary" class="mt-2" @click="openAddModal" />
-            </div>
-          </UCard>
-        </div>
-
-        <div v-if="slotProps.item.value === 'build'" class="space-y-4">
-          <UCard>
-            <div class="flex flex-col items-center justify-center p-12 text-gray-400">
-              <UIcon name="i-heroicons-wrench-screwdriver" class="w-12 h-12 mb-2 opacity-50" />
-              <p>Build history will appear here.</p>
-            </div>
-          </UCard>
-        </div>
-
-        <div v-if="slotProps.item.value === 'docs'" class="space-y-4">
-          <UCard>
-            <div class="flex flex-col items-center justify-center p-12 text-gray-400">
-              <UIcon name="i-heroicons-document-text" class="w-12 h-12 mb-2 opacity-50" />
-              <p>Project documentation will appear here.</p>
-            </div>
-          </UCard>
-        </div>
+          <div v-else class="flex flex-col items-center justify-center p-12 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-lg text-gray-400">
+            <UIcon name="i-heroicons-paper-clip" class="w-12 h-12 mb-2 opacity-50" />
+            <p class="text-sm">No attachments yet.</p>
+            <p class="text-xs mt-1">Upload files to attach them to this project.</p>
+          </div>
+        </UCard>
       </template>
     </UTabs>
-
-    <UModal v-model:open="showAddModal">
-      <template #header>
-        <div class="flex items-center justify-between">
-          <h3 class="font-semibold">Add BOM Item</h3>
-        </div>
-      </template>
-
-      <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium mb-1">Part</label>
-          <UInput
-            v-model="partSearchQuery"
-            placeholder="Search parts..."
-            icon="i-heroicons-magnifying-glass"
-          />
-          <div v-if="filteredParts.length > 0" class="mt-1 border rounded-lg max-h-48 overflow-y-auto">
-            <button
-              v-for="part in filteredParts"
-              :key="part.id"
-              class="w-full px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800 text-sm"
-              @click="selectPart(part)">
-              <div class="font-medium">{{ part.name }}</div>
-              <div class="text-gray-500 text-xs">{{ part.mpn }}</div>
-            </button>
-          </div>
-          <div v-if="selectedPart" class="mt-2 p-2 bg-green-50 dark:bg-green-900/20 rounded text-sm">
-            <span class="font-medium text-green-700 dark:text-green-400">{{ selectedPart.name }}</span>
-            <span class="text-gray-500 ml-2">{{ selectedPart.mpn }}</span>
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium mb-1">Quantity</label>
-          <UInput v-model.number="addForm.quantity" type="number" min="1" />
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium mb-1">Designators</label>
-          <UInput v-model="addForm.designators" placeholder="e.g., R1, C2-C5" />
-        </div>
-      </div>
-
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton variant="ghost" color="neutral" @click="showAddModal = false">Cancel</UButton>
-          <UButton icon="i-heroicons-plus" :loading="isSaving" @click="addItem">Add Item</UButton>
-        </div>
-      </template>
-    </UModal>
   </div>
 
   <div v-else class="flex items-center justify-center py-12">

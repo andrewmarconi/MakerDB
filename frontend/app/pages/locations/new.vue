@@ -19,22 +19,13 @@ const modeOptions = [
   { label: 'Grid', value: 'grid', description: 'Create a grid (rows x columns)', icon: 'i-heroicons-squares-2x2' }
 ]
 
-// Fetch existing locations for parent selection and conflict checking
+// Fetch existing locations for conflict checking
 const { data: locations } = await useApiFetch('/inventory/locations')
-
-const parentOptions = computed(() => {
-  if (!locations.value) return [{ label: 'None (Top Level)', value: null }]
-  return [
-    { label: 'None (Top Level)', value: null },
-    ...locations.value.map((loc: any) => ({ label: loc.name, value: loc.id }))
-  ]
-})
 
 // Single mode form
 const singleForm = ref({
   name: '',
-  description: '',
-  parent_id: null as string | null
+  description: ''
 })
 
 // Row mode form
@@ -42,8 +33,7 @@ const rowForm = ref({
   prefix: '',
   rangeType: 'letters' as RangeType,
   rangeStart: 'A',
-  rangeEnd: 'Z',
-  parent_id: null as string | null
+  rangeEnd: 'Z'
 })
 
 // Grid mode form
@@ -54,8 +44,7 @@ const gridForm = ref({
   rowEnd: '5',
   colRangeType: 'letters' as RangeType,
   colStart: 'A',
-  colEnd: 'F',
-  parent_id: null as string | null
+  colEnd: 'F'
 })
 
 // Generate range helper
@@ -126,7 +115,6 @@ async function handleSubmit() {
     } else {
       // Bulk create for row/grid modes
       const names = mode.value === 'row' ? rowPreviewNames.value : gridPreviewNames.value
-      const parentId = mode.value === 'row' ? rowForm.value.parent_id : gridForm.value.parent_id
 
       for (const name of names) {
         await useApiFetch('/inventory/locations', {
@@ -157,7 +145,7 @@ const isValid = computed(() => {
 </script>
 
 <template>
-  <div class="max-w-4xl mx-auto space-y-6">
+  <div class="w-full mx-auto space-y-6">
     <div class="flex items-center justify-between">
       <div>
         <h1 class="text-2xl font-bold">Create Storage Location</h1>
@@ -166,134 +154,131 @@ const isValid = computed(() => {
       <UButton icon="i-heroicons-x-mark" variant="ghost" color="neutral" to="/locations" />
     </div>
 
-    <!-- Mode Selection -->
-    <UCard>
-      <template #header>
-        <h3 class="font-semibold">Creation Mode</h3>
-      </template>
-
-      <URadioGroup v-model="mode" :items="modeOptions" value-key="value" variant="card" orientation="horizontal" />
-    </UCard>
-
-    <!-- Single Mode Form -->
-    <UCard v-if="mode === 'single'">
-      <template #header>
-        <h3 class="font-semibold">Location Details</h3>
-      </template>
-
-      <div class="space-y-4">
-        <UFormField label="Name" required>
-          <UInput v-model="singleForm.name" placeholder="e.g., Shelf A, Drawer 1, Box 12" class="w-full" />
-        </UFormField>
-
-        <UFormField label="Description">
-          <UTextarea v-model="singleForm.description" placeholder="Optional description..." class="w-full" :rows="3" />
-        </UFormField>
-
-        <UFormField label="Parent Location">
-          <USelect v-model="singleForm.parent_id" :items="parentOptions" value-key="value" class="w-full" />
-        </UFormField>
+    <div class="flex gap-4 w-full">
+      <div class="w-1/3">
+        <!-- Mode Selection -->
+        <UCard>
+          <template #header>
+            <h3 class="font-semibold">Creation Mode</h3>
+          </template>
+          <URadioGroup v-model="mode" :items="modeOptions" value-key="value" variant="card" orientation="vertical" />
+        </UCard>
       </div>
-    </UCard>
+      <div class="w-2/3">
+        <!-- Single Mode Form -->
+        <UCard v-if="mode === 'single'">
+          <template #header>
+            <h3 class="font-semibold">Location Details</h3>
+          </template>
 
-    <!-- Row Mode Form -->
-    <UCard v-if="mode === 'row'">
-      <template #header>
-        <h3 class="font-semibold">Sequence Configuration</h3>
-      </template>
-
-      <div class="space-y-4">
-        <UFormField label="Prefix" required description="Text that appears before each number/letter">
-          <UInput v-model="rowForm.prefix" placeholder="e.g., Box-, Shelf-A-, Drawer" class="w-full" />
-        </UFormField>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <UFormField label="Range Type">
-            <USelect v-model="rowForm.rangeType" :items="[
-              { label: 'Letters (A-Z)', value: 'letters' },
-              { label: 'Numbers (1-99)', value: 'numbers' }
-            ]" value-key="value" class="w-full" />
-          </UFormField>
-
-          <UFormField label="Start">
-            <UInput v-model="rowForm.rangeStart" :placeholder="rowForm.rangeType === 'letters' ? 'A' : '1'"
-              class="w-full" />
-          </UFormField>
-
-          <UFormField label="End">
-            <UInput v-model="rowForm.rangeEnd" :placeholder="rowForm.rangeType === 'letters' ? 'Z' : '20'"
-              class="w-full" />
-          </UFormField>
-        </div>
-
-        <UFormField label="Parent Location">
-          <USelect v-model="rowForm.parent_id" :items="parentOptions" value-key="value" class="w-full" />
-        </UFormField>
-      </div>
-    </UCard>
-
-    <!-- Grid Mode Form -->
-    <UCard v-if="mode === 'grid'">
-      <template #header>
-        <h3 class="font-semibold">Grid Configuration</h3>
-      </template>
-
-      <div class="space-y-4">
-        <UFormField label="Prefix" required description="Text that appears before row/column identifiers">
-          <UInput v-model="gridForm.prefix" placeholder="e.g., Shelf-, Cabinet-, Bin-" class="w-full" />
-        </UFormField>
-
-        <!-- Row Range -->
-        <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg space-y-3">
-          <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Row Range</h4>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <UFormField label="Type">
-              <USelect v-model="gridForm.rowRangeType" :items="[
-                { label: 'Letters', value: 'letters' },
-                { label: 'Numbers', value: 'numbers' }
-              ]" value-key="value" class="w-full" />
+          <div class="space-y-4">
+            <UFormField label="Name" required>
+              <UInput v-model="singleForm.name" placeholder="e.g., Shelf A, Drawer 1, Box 12" class="w-full" />
             </UFormField>
 
-            <UFormField label="Start">
-              <UInput v-model="gridForm.rowStart" :placeholder="gridForm.rowRangeType === 'letters' ? 'A' : '1'"
-                class="w-full" />
-            </UFormField>
-
-            <UFormField label="End">
-              <UInput v-model="gridForm.rowEnd" :placeholder="gridForm.rowRangeType === 'letters' ? 'E' : '5'"
-                class="w-full" />
+            <UFormField label="Description">
+              <UTextarea v-model="singleForm.description" placeholder="Optional description..." class="w-full"
+                :rows="3" />
             </UFormField>
           </div>
-        </div>
+        </UCard>
 
-        <!-- Column Range -->
-        <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg space-y-3">
-          <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Column Range</h4>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <UFormField label="Type">
-              <USelect v-model="gridForm.colRangeType" :items="[
-                { label: 'Letters', value: 'letters' },
-                { label: 'Numbers', value: 'numbers' }
-              ]" value-key="value" class="w-full" />
+        <!-- Row Mode Form -->
+        <UCard v-if="mode === 'row'">
+          <template #header>
+            <h3 class="font-semibold">Sequence Configuration</h3>
+          </template>
+
+          <div class="space-y-4">
+            <UFormField label="Prefix" required description="Text that appears before each number/letter">
+              <UInput v-model="rowForm.prefix" placeholder="e.g., Box-, Shelf-A-, Drawer" class="w-full" />
             </UFormField>
 
-            <UFormField label="Start">
-              <UInput v-model="gridForm.colStart" :placeholder="gridForm.colRangeType === 'letters' ? 'A' : '1'"
-                class="w-full" />
-            </UFormField>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <UFormField label="Range Type">
+                <USelect v-model="rowForm.rangeType" :items="[
+                  { label: 'Letters (A-Z)', value: 'letters' },
+                  { label: 'Numbers (1-99)', value: 'numbers' }
+                ]" value-key="value" class="w-full" />
+              </UFormField>
 
-            <UFormField label="End">
-              <UInput v-model="gridForm.colEnd" :placeholder="gridForm.colRangeType === 'letters' ? 'F' : '6'"
-                class="w-full" />
-            </UFormField>
+              <UFormField label="Start">
+                <UInput v-model="rowForm.rangeStart" :placeholder="rowForm.rangeType === 'letters' ? 'A' : '1'"
+                  class="w-full" />
+              </UFormField>
+
+              <UFormField label="End">
+                <UInput v-model="gridForm.colEnd" :placeholder="gridForm.colRangeType === 'letters' ? 'F' : '6'"
+                  class="w-full" />
+              </UFormField>
+            </div>
           </div>
-        </div>
+        </UCard>
 
-        <UFormField label="Parent Location">
-          <USelect v-model="gridForm.parent_id" :items="parentOptions" value-key="value" class="w-full" />
-        </UFormField>
+        <!-- Grid Mode Form -->
+        <UCard v-if="mode === 'grid'">
+          <template #header>
+            <h3 class="font-semibold">Grid Configuration</h3>
+          </template>
+
+          <div class="space-y-4">
+            <UFormField label="Prefix" required description="Text that appears before row/column identifiers">
+              <UInput v-model="gridForm.prefix" placeholder="e.g., Shelf-, Cabinet-, Bin-" class="w-full" />
+            </UFormField>
+
+            <!-- Row Range -->
+            <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg space-y-3">
+              <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Row Range</h4>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <UFormField label="Type">
+                  <USelect v-model="gridForm.rowRangeType" :items="[
+                    { label: 'Letters', value: 'letters' },
+                    { label: 'Numbers', value: 'numbers' }
+                  ]" value-key="value" class="w-full" />
+                </UFormField>
+
+                <UFormField label="Start">
+                  <UInput v-model="gridForm.rowStart" :placeholder="gridForm.rowRangeType === 'letters' ? 'A' : '1'"
+                    class="w-full" />
+                </UFormField>
+
+                <UFormField label="End">
+                  <UInput v-model="gridForm.rowEnd" :placeholder="gridForm.rowRangeType === 'letters' ? 'E' : '5'"
+                    class="w-full" />
+                </UFormField>
+              </div>
+            </div>
+
+            <!-- Column Range -->
+            <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg space-y-3">
+              <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Column Range</h4>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <UFormField label="Type">
+                  <USelect v-model="gridForm.colRangeType" :items="[
+                    { label: 'Letters', value: 'letters' },
+                    { label: 'Numbers', value: 'numbers' }
+                  ]" value-key="value" class="w-full" />
+                </UFormField>
+
+                <UFormField label="Start">
+                  <UInput v-model="gridForm.colStart" :placeholder="gridForm.colRangeType === 'letters' ? 'A' : '1'"
+                    class="w-full" />
+                </UFormField>
+
+                <UFormField label="End">
+                  <UInput v-model="gridForm.colEnd" :placeholder="gridForm.colRangeType === 'letters' ? 'F' : '6'"
+                    class="w-full" />
+                </UFormField>
+              </div>
+            </div>
+
+          </div>
+        </UCard>
+
       </div>
-    </UCard>
+    </div>
+
+
 
     <!-- Preview Panel -->
     <UCard v-if="mode !== 'single'">
@@ -357,7 +342,8 @@ const isValid = computed(() => {
     <!-- Actions -->
     <div class="flex items-center justify-end gap-3">
       <UButton label="Cancel" color="neutral" variant="ghost" to="/locations" />
-      <UButton :label="mode === 'single' ? 'Create Location' : `Create ${mode === 'row' ? rowPreviewNames.length : gridPreviewNames.length} Locations`"
+      <UButton
+        :label="mode === 'single' ? 'Create Location' : `Create ${mode === 'row' ? rowPreviewNames.length : gridPreviewNames.length} Locations`"
         color="primary" :loading="isSubmitting" :disabled="!isValid || isSubmitting" @click="handleSubmit" />
     </div>
   </div>

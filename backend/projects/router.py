@@ -226,3 +226,64 @@ async def match_bom_items(project_id: UUID, items: List[BOMImportItem]):
         results.append(result)
 
     return results
+
+
+# --- Attachment Endpoints ---
+
+
+@router.get("/{project_id}/attachments")
+async def list_project_attachments(project_id: UUID):
+    """List all attachments for a project."""
+    try:
+        project = await sync_to_async(Project.objects.prefetch_related("attachments").get)(id=project_id)
+    except Project.DoesNotExist:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    attachments = await sync_to_async(lambda: list(project.attachments.all()))()
+    return attachments
+
+
+@router.post("/{project_id}/attachments")
+async def upload_project_attachment(project_id: UUID, file: UploadFile = File(...)):
+    """Upload a new attachment for a project."""
+    try:
+        project = await sync_to_async(Project.objects.get)(id=project_id)
+    except Project.DoesNotExist:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    @sync_to_async
+    def _create():
+        content = file.file.read() if hasattr(file, "file") else b""
+        file.file.seek(0)
+
+        attachment = Attachment.objects.create(
+            filename=file.filename or "unnamed",
+            content_type=file.content_type or "application/octet-stream",
+            size=file.size or 0,
+            file=file.file,
+        )
+        project.attachments.add(attachment)
+        return attachment
+
+    try:
+        attachment = await _create()
+        return attachment
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/{project_id}/attachments/{attachment_id}", status_code=204)
+async def delete_project_attachment(project_id: UUID, attachment_id: UUID):
+    """Delete an attachment from a project."""
+    try:
+        project = await sync_to_async(Project.objects.get)(id=project_id)
+    except Project.DoesNotExist:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    try:
+        attachment = await sync_to_async(Attachment.objects.get)(id=attachment_id)
+    except Attachment.DoesNotExist:
+        raise HTTPException(status_code=404, detail="Attachment not found")
+
+    await sync_to_async(project.attachments.remove)(attachment)
+    await sync_to_async(attachment.delete)()

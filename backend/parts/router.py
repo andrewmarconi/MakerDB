@@ -34,11 +34,30 @@ def _get_part_queryset():
 async def list_parts(
     skip: int = Query(0, ge=0, description="Number of records to skip"),
     limit: int = Query(100, ge=1, le=1000, description="Maximum number of records to return"),
+    search: str = Query(None, description="Search term for filtering parts"),
 ):
     """
-    List parts with pagination support.
+    List parts with pagination and optional search support.
     """
-    parts = await sync_to_async(list)(_get_part_queryset().all()[skip : skip + limit])
+    queryset = _get_part_queryset()
+
+    if search:
+        queryset = queryset.filter(
+            Q(name__icontains=search) | Q(mpn__icontains=search) | Q(description__icontains=search)
+        )
+
+    parts = await sync_to_async(list)(queryset.all()[skip : skip + limit])
+    return parts
+
+
+@router.get("/search", response_model=List[PartSchema])
+async def search_parts(q: str = Query(..., min_length=1, description="Search query")):
+    """
+    Search parts by name, MPN, or description.
+    """
+    parts = await sync_to_async(list)(
+        _get_part_queryset().filter(Q(name__icontains=q) | Q(mpn__icontains=q) | Q(description__icontains=q))[:20]
+    )
     return parts
 
 

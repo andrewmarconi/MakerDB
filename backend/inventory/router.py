@@ -171,6 +171,40 @@ async def list_stock(skip: int = Query(0, ge=0), limit: int = Query(100, ge=1, l
     return stock
 
 
+@router.get("/locations/{location_id}/stock", response_model=List[StockSchema])
+async def get_stock_by_location(location_id: UUID):
+    """Get all stock entries for a specific location."""
+    try:
+        location = await sync_to_async(Storage.objects.get)(id=location_id)
+    except Storage.DoesNotExist:
+        raise HTTPException(status_code=404, detail="Storage location not found")
+
+    stock = await sync_to_async(list)(
+        Stock.objects.filter(storage=location)
+        .select_related("part", "storage", "lot")
+        .prefetch_related("storage__attachments", "lot__attachments")
+        .all()
+    )
+    return stock
+
+
+@router.get("/locations/{location_id}/stock", response_model=List[StockSchema])
+async def get_stock_by_location(location_id: UUID):
+    """Get all stock entries for a specific location."""
+    try:
+        location = await sync_to_async(Storage.objects.get)(id=location_id)
+    except Storage.DoesNotExist:
+        raise HTTPException(status_code=404, detail="Storage location not found")
+
+    stock = await sync_to_async(list)(
+        Stock.objects.filter(storage=location)
+        .select_related("part", "storage", "lot")
+        .prefetch_related("storage__attachments", "lot__attachments")
+        .all()
+    )
+    return stock
+
+
 @router.get("/stock/count", response_model=dict)
 async def count_stock():
     count = await sync_to_async(_get_stock_queryset().count)()
