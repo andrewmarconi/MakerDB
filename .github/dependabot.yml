@@ -6,6 +6,12 @@
 version: 2
 
 multi-ecosystem-groups:
+  frontend:
+    schedule:
+      interval: "weekly"
+  backend:
+    schedule:
+      interval: "weelky"
   infrastructure:
     schedule:
       interval: "weekly"
