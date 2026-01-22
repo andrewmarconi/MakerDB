@@ -64,28 +64,31 @@ const cardActions = computed(() => [
     :default-sort="{ id: 'name', desc: false }"
   />
 
-  <UModal v-model:open="showDeleteModal">
-    <template #header>
-      <h3 class="text-lg font-semibold">Delete Location</h3>
-    </template>
-    <template #body>
-      <p class="text-gray-600 dark:text-gray-400">
-        Are you sure you want to delete <strong>{{ locationToDelete?.name }}</strong>? This action cannot be undone.
-      </p>
-      <UAlert 
-        v-if="deleteError" 
-        color="error" 
-        variant="subtle" 
-        icon="i-heroicons-exclamation-circle" 
-        class="mt-4"
-        :description="deleteError" />
-    </template>
+  <UModal v-model="showDeleteModal">
+    <template #content>
+      <UCard>
+        <template #header>
+          <h3 class="text-lg font-semibold">Delete Location</h3>
+        </template>
 
-    <template #footer>
-      <div class="flex items-center justify-end gap-3">
-        <UButton label="Cancel" color="neutral" variant="ghost" @click="showDeleteModal = false" />
-        <UButton label="Delete" color="error" :loading="isDeleting" @click="handleDelete" />
-      </div>
+        <p class="text-gray-600 dark:text-gray-400">
+          Are you sure you want to delete <strong>{{ locationToDelete?.name }}</strong>? This action cannot be undone.
+        </p>
+        <UAlert 
+          v-if="deleteError" 
+          color="error" 
+          variant="subtle" 
+          icon="i-heroicons-exclamation-circle" 
+          class="mt-4"
+          :description="deleteError" />
+
+        <template #footer>
+          <div class="flex items-center justify-end gap-3">
+            <UButton label="Cancel" color="neutral" variant="ghost" @click="showDeleteModal = false" />
+            <UButton label="Delete" color="error" :loading="isDeleting" @click="handleDelete" />
+          </div>
+        </template>
+      </UCard>
     </template>
   </UModal>
 </template>

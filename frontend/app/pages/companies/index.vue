@@ -86,29 +86,31 @@ const cardActions = computed(() => [
     </template>
   </DataListView>
 
-  <UModal v-model:open="showDeleteModal">
-    <template #header>
-      <h3 class="text-lg font-semibold">Delete Company</h3>
-    </template>
+  <UModal v-model="showDeleteModal">
+    <template #content>
+      <UCard>
+        <template #header>
+          <h3 class="text-lg font-semibold">Delete Company</h3>
+        </template>
 
-    <template #body>
-      <p class="text-gray-600 dark:text-gray-400">
-        Are you sure you want to delete <strong>{{ companyToDelete?.name }}</strong>? This action cannot be undone.
-      </p>
-      <UAlert 
-        v-if="deleteError" 
-        color="error" 
-        variant="subtle" 
-        icon="i-heroicons-exclamation-circle" 
-        class="mt-4"
-        :description="deleteError" />
-    </template>
+        <p class="text-gray-600 dark:text-gray-400">
+          Are you sure you want to delete <strong>{{ companyToDelete?.name }}</strong>? This action cannot be undone.
+        </p>
+        <UAlert 
+          v-if="deleteError" 
+          color="error" 
+          variant="subtle" 
+          icon="i-heroicons-exclamation-circle" 
+          class="mt-4"
+          :description="deleteError" />
 
-    <template #footer>
-      <div class="flex items-center justify-end gap-3">
-        <UButton label="Cancel" color="neutral" variant="ghost" @click="showDeleteModal = false" />
-        <UButton label="Delete" color="error" :loading="isDeleting" @click="handleDelete" />
-      </div>
+        <template #footer>
+          <div class="flex items-center justify-end gap-3">
+            <UButton label="Cancel" color="neutral" variant="ghost" @click="showDeleteModal = false" />
+            <UButton label="Delete" color="error" :loading="isDeleting" @click="handleDelete" />
+          </div>
+        </template>
+      </UCard>
     </template>
   </UModal>
 </template>
