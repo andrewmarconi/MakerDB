@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { FieldSchema, FieldState } from '~/shared/types/ui'
+import type { tFieldSchema, tFieldState } from '~/shared/types/ui'
 import DataFormField from '~/components/DataFormField.vue'
 
 const props = withDefaults(defineProps<{
   modelValue: Record<string, any>
-  schema: FieldSchema[]
+  schema: tFieldSchema[]
   endpoint: string
   entityId: string
   saveMode?: 'patch' | 'put'
@@ -27,7 +27,7 @@ const emit = defineEmits<{
 }>()
 
 // Track state for each field
-const fieldStates = ref<Record<string, FieldState>>({})
+const fieldStates = ref<Record<string, tFieldState>>({})
 const fieldErrors = ref<Record<string, string | null>>({})
 const originalValues = ref<Record<string, any>>({})
 const pendingSaves = ref<Record<string, ReturnType<typeof setTimeout>>>({})
@@ -55,7 +55,7 @@ watch(() => props.modelValue, (newVal) => {
   })
 }, { deep: true })
 
-function getFieldState(key: string): FieldState {
+function getFieldState(key: string): tFieldState {
   return fieldStates.value[key] || 'idle'
 }
 
@@ -63,7 +63,7 @@ function getFieldError(key: string): string | null {
   return fieldErrors.value[key] || null
 }
 
-function handleFieldFocus(field: FieldSchema) {
+function handleFieldFocus(field: tFieldSchema) {
   fieldStates.value[field.key] = 'editing'
   fieldErrors.value[field.key] = null
   originalValues.value[field.key] = props.modelValue[field.key]
@@ -71,7 +71,7 @@ function handleFieldFocus(field: FieldSchema) {
   emit('field-focus', field.key)
 }
 
-function handleFieldBlur(field: FieldSchema) {
+function handleFieldBlur(field: tFieldSchema) {
   emit('field-blur', field.key)
 
   // Check if value actually changed (compare against committed value, not props.modelValue
@@ -112,13 +112,13 @@ function handleFieldBlur(field: FieldSchema) {
   }, props.debounceMs)
 }
 
-function handleFieldUpdate(field: FieldSchema, value: any) {
+function handleFieldUpdate(field: tFieldSchema, value: any) {
   const newModelValue = { ...props.modelValue, [field.key]: value }
   emit('update:modelValue', newModelValue)
   committedValues.value[field.key] = value
 }
 
-function handleFieldSave(field: FieldSchema) {
+function handleFieldSave(field: tFieldSchema) {
   // Clear debounce and save immediately
   if (pendingSaves.value[field.key]) {
     clearTimeout(pendingSaves.value[field.key])
@@ -126,7 +126,7 @@ function handleFieldSave(field: FieldSchema) {
   saveField(field)
 }
 
-function handleFieldCancel(field: FieldSchema) {
+function handleFieldCancel(field: tFieldSchema) {
   // Clear any pending save
   if (pendingSaves.value[field.key]) {
     clearTimeout(pendingSaves.value[field.key])
@@ -140,7 +140,7 @@ function handleFieldCancel(field: FieldSchema) {
   fieldErrors.value[field.key] = null
 }
 
-async function saveField(field: FieldSchema) {
+async function saveField(field: tFieldSchema) {
   const value = props.modelValue[field.key]
 
   fieldStates.value[field.key] = 'saving'

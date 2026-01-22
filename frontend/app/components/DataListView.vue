@@ -1,9 +1,9 @@
 <script setup lang="ts" generic="T">
 import { useStorage } from '@vueuse/core'
 import type { DropdownMenuItem } from '@nuxt/ui'
-import type { DataListViewProps } from '#shared/types'
-import { type ModelKeys, MODEL_REGISTRY } from '#shared/config/models'
-const props = withDefaults(defineProps<DataListViewProps>(), {
+import type { tDataListViewProps } from '#shared/types'
+import { type tModelKeys, MODEL_REGISTRY } from '#shared/config/models'
+const props = withDefaults(defineProps<tDataListViewProps>(), {
   viewMode: 'table',
   canView: true,
   canDelete: true,

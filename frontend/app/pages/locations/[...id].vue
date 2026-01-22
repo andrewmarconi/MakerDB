@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FieldSchema } from '#shared/types/ui'
+import type { tFieldSchema } from '#shared/types/ui'
 
 definePageMeta({
   title: 'Storage Location'
@@ -10,78 +10,12 @@ useSeoMeta({
   description: 'View and edit storage location details and contents.'
 })
 
-const route = useRoute()
-const router = useRouter()
-const toast = useToast()
-
-const currentPathIds = computed(() => {
-  const ids = route.params.id || []
-  return Array.isArray(ids) ? ids : [ids]
-})
-
-const currentLocationId = computed(() => {
-  const ids = currentPathIds.value
-  return ids.length > 0 ? ids[ids.length - 1] : null
-})
-
-const { data: location, refresh: refreshLocation } = await useApiFetch(
-  `/inventory/locations/${currentLocationId.value}`,
-  { immediate: !!currentLocationId.value }
-)
-
-const { data: locations, refresh: refreshLocations } = await useApiFetch('/inventory/locations')
-
-const { data: stockAtLocation, refresh: refreshStock } = await useApiFetch(
-  `/inventory/locations/${currentLocationId.value}/stock`,
-  { immediate: !!currentLocationId.value }
-)
-
-const detailsSchema: FieldSchema[] = [
-  { key: 'name', label: 'Location Name', type: 'text', required: true, span: 2 },
-  { key: 'description', label: 'Description', type: 'textarea', span: 2 },
-  { key: 'tags', label: 'Tags', type: 'tags', span: 2 },
+const detailsSchema: tFieldSchema[] = [
+  { key: 'name', label: 'Location Name', type: 'text', required: true },
+  { key: 'description', label: 'Description', type: 'textarea', span: 2 }
 ]
 
-const tabs = [
-  { label: 'Details', icon: 'i-heroicons-information-circle', value: 'details', slot: 'details' },
-  { label: 'Stock', icon: 'i-heroicons-cube', value: 'stock', slot: 'stock' },
-]
-
-const activeTab = ref('details')
-
-async function handleSave(field: string, value: any, response: any) {
-  toast.add({ title: `${field} updated`, icon: 'i-heroicons-check-circle' })
-  if (response) {
-    location.value = response
-  }
-  await refreshLocation()
-  refreshLocations()
-}
-
-function handleSaveError(field: string, error: Error) {
-  toast.add({ title: `Failed to update ${field}`, description: error.message, color: 'error' })
-}
-
-const showDeleteModal = ref(false)
-const isDeleting = ref(false)
-
-async function handleDelete() {
-  if (!currentLocationId.value) return
-
-  isDeleting.value = true
-  try {
-    await $fetch(`/db/inventory/locations/${currentLocationId.value}`, { method: 'DELETE' })
-    toast.add({ title: 'Location deleted' })
-    router.push('/locations')
-  } catch (err: any) {
-    toast.add({ title: 'Failed to delete', description: err.data?.detail || err.message, color: 'error' })
-  } finally {
-    isDeleting.value = false
-    showDeleteModal.value = false
-  }
-}
-
-const stockItemSchema: FieldSchema[] = [
+const stockItemSchema: tFieldSchema[] = [
   { key: 'quantity', label: 'Qty', type: 'number', required: true },
   {
     key: 'status', label: 'Status', type: 'select', options: [

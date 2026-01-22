@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FieldSchema } from '~/shared/types/ui'
+import type { tFieldSchema } from '~/shared/types/ui'
 import DataFormView from '~/components/DataFormView.vue'
 import DataFormInlineView from '~/components/DataFormInlineView.vue'
 
@@ -66,7 +66,7 @@ const canEdit = computed(() => {
   return status === 'draft' || status === 'active'
 })
 
-const detailsSchema: FieldSchema[] = [
+const detailsSchema: tFieldSchema[] = [
   { key: 'name', label: 'Project Name', type: 'text', required: true, span: 2 },
   { key: 'revision', label: 'Revision', type: 'text', span: 1 },
   { key: 'status', label: 'Status', type: 'select', options: [
@@ -78,7 +78,7 @@ const detailsSchema: FieldSchema[] = [
   { key: 'notes', label: 'Notes', type: 'textarea', span: 2 },
 ]
 
-const bomItemSchema: FieldSchema[] = [
+const bomItemSchema: tFieldSchema[] = [
   { key: 'part_id', label: 'Part', type: 'search', searchEndpoint: '/parts/search', searchLabelKey: 'name', searchQueryParam: 'q', required: true },
   { key: 'quantity', label: 'Qty', type: 'number', required: true },
   { key: 'designators', label: 'Reference', type: 'text' },
