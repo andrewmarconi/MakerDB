@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { tCreateMode, tRangeType } from '~/shared/types/ui'
+
 definePageMeta({
   title: 'Add New Location'
 })
@@ -11,7 +13,7 @@ useSeoMeta({
 const router = useRouter()
 
 // Mode selection
-const mode = ref<CreateMode>('single')
+const mode = ref<tCreateMode>('single')
 
 const modeOptions = [
   { label: 'Single', value: 'single', description: 'Create one location', icon: 'i-heroicons-square-2-stack' },
@@ -31,7 +33,7 @@ const singleForm = ref({
 // Row mode form
 const rowForm = ref({
   prefix: '',
-  rangeType: 'letters' as RangeType,
+  rangeType: 'letters' as tRangeType,
   rangeStart: 'A',
   rangeEnd: 'Z'
 })
@@ -39,16 +41,16 @@ const rowForm = ref({
 // Grid mode form
 const gridForm = ref({
   prefix: '',
-  rowRangeType: 'numbers' as RangeType,
+  rowRangeType: 'numbers' as tRangeType,
   rowStart: '1',
   rowEnd: '5',
-  colRangeType: 'letters' as RangeType,
+  colRangeType: 'letters' as tRangeType,
   colStart: 'A',
   colEnd: 'F'
 })
 
 // Generate range helper
-function generateRange(type: RangeType, start: string, end: string): string[] {
+function generateRange(type: tRangeType, start: string, end: string): string[] {
   if (type === 'letters') {
     const startCode = start.toUpperCase().charCodeAt(0)
     const endCode = end.toUpperCase().charCodeAt(0)

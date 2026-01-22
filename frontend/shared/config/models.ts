@@ -1,4 +1,4 @@
-export type ModelConfig = {
+export type tModelConfig = {
     apiPath: string;
     label: string;
     labelPlural: string;
@@ -8,7 +8,7 @@ export type ModelConfig = {
     clickableColumn?: string;
 };
 
-export const MODEL_REGISTRY = {
+export const MODEL_REGISTRY: Record<string, tModelConfig> = {
     projects: {
         apiPath: '/db/projects',
         label: 'Project',

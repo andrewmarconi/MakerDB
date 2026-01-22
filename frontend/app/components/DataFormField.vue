@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { FieldSchema, FieldState } from '~/shared/types/ui'
+import type { tFieldSchema, tFieldState } from '~/shared/types/ui'
 import TagManager from '~/components/Tags/TagManager.vue'
 
 const props = defineProps<{
-  schema: FieldSchema
+  schema: tFieldSchema
   modelValue: any
-  state: FieldState
+  state: tFieldState
   error?: string | null
   readonly?: boolean
 }>()

@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="T extends Record<string, any>">
-import type { FieldSchema, FieldState } from '~/shared/types/ui'
+import type { tFieldSchema, tFieldState } from '~/shared/types/ui'
 import DataFormField from '~/components/DataFormField.vue'
 
 interface DisplayColumn {
@@ -10,7 +10,7 @@ interface DisplayColumn {
 
 const props = withDefaults(defineProps<{
   items: T[]
-  itemSchema: FieldSchema[]
+  itemSchema: tFieldSchema[]
   displayColumns?: DisplayColumn[]
   baseEndpoint: string
   title?: string
@@ -38,7 +38,7 @@ const emit = defineEmits<{
 
 const toast = useToast()
 
-const editingRows = ref<Record<string, Record<string, FieldState>>>({})
+const editingRows = ref<Record<string, Record<string, tFieldState>>>({})
 const editingValues = ref<Record<string, Record<string, any>>>({})
 const pendingSaves = ref<Record<string, Record<string, ReturnType<typeof setTimeout>>>>({})
 const fieldErrors = ref<Record<string, Record<string, string | null>>>({})
@@ -81,7 +81,7 @@ watch(() => props.items, (newItems) => {
   })
 }, { deep: true })
 
-function getRowState(itemId: string, fieldKey: string): FieldState {
+function getRowState(itemId: string, fieldKey: string): tFieldState {
   return editingRows.value[itemId]?.[fieldKey] || 'idle'
 }
 
@@ -89,7 +89,7 @@ function getRowError(itemId: string, fieldKey: string): string | null {
   return fieldErrors.value[itemId]?.[fieldKey] || null
 }
 
-function handleFieldFocus(itemId: string, field: FieldSchema) {
+function handleFieldFocus(itemId: string, field: tFieldSchema) {
   if (!editingValues.value[itemId]) {
     editingValues.value[itemId] = { ...props.items.find(i => i.id === itemId) }
   }
@@ -97,7 +97,7 @@ function handleFieldFocus(itemId: string, field: FieldSchema) {
   fieldErrors.value[itemId][field.key] = null
 }
 
-function handleFieldBlur(itemId: string, field: FieldSchema) {
+function handleFieldBlur(itemId: string, field: tFieldSchema) {
   const currentValue = editingValues.value[itemId]?.[field.key]
   const originalValue = props.items.find(i => i.id === itemId)?.[field.key]
 
@@ -131,11 +131,11 @@ function handleFieldBlur(itemId: string, field: FieldSchema) {
   }, 500)
 }
 
-function handleFieldUpdate(itemId: string, field: FieldSchema, value: any) {
+function handleFieldUpdate(itemId: string, field: tFieldSchema, value: any) {
   editingValues.value[itemId] = { ...editingValues.value[itemId], [field.key]: value }
 }
 
-async function saveField(itemId: string, field: FieldSchema) {
+async function saveField(itemId: string, field: tFieldSchema) {
   const value = editingValues.value[itemId]?.[field.key]
   editingRows.value[itemId][field.key] = 'saving'
   fieldErrors.value[itemId][field.key] = null
@@ -204,7 +204,7 @@ function cancelAdd() {
   searchState.value = {}
 }
 
-async function handleSearch(field: FieldSchema, query: string) {
+async function handleSearch(field: tFieldSchema, query: string) {
   if (!field.searchEndpoint) return
 
   searchState.value[field.key] = {
@@ -240,7 +240,7 @@ async function handleSearch(field: FieldSchema, query: string) {
   }, 300)
 }
 
-function selectSearchResult(field: FieldSchema, result: any) {
+function selectSearchResult(field: tFieldSchema, result: any) {
   newItemForm.value[field.key] = result.value
   newItemForm.value[`${field.key}_data`] = result.data
   searchState.value[field.key].results = []

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { FilterConfig } from '#shared/types'
+import type { tFilterConfig } from '#shared/types'
 
 type Props = {
-  filters: FilterConfig[]
+  filters: tFilterConfig[]
   modelValue: Record<string, any>
 }
 
