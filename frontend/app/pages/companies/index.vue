@@ -19,13 +19,6 @@ const columns: ColumnDef<Company>[] = [
 
 const cardFields = ['website', 'is_manufacturer', 'is_vendor', 'created_at']
 
-const { data, pending, error, refresh } = await useAsyncData(
-  'companies',
-  (_nuxtApp, { signal }) => $fetch<Company[]>('/db/companies/', { signal }),
-)
-
-const isLoading = computed(() => pending.value || !!error.value)
-
 const showDeleteModal = ref(false)
 const companyToDelete = ref<Company | null>(null)
 const isDeleting = ref(false)
@@ -43,7 +36,6 @@ async function handleDelete() {
     })
     showDeleteModal.value = false
     companyToDelete.value = null
-    refresh()
   } catch (err: any) {
     deleteError.value = err.data?.detail || err.message || 'Failed to delete company'
   } finally {

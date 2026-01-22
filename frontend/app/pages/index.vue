@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import InventoryValuation from '~/components/Dashboard/InventoryValuation.vue'
 import StorageOccupancy from '~/components/Dashboard/StorageOccupancy.vue'
 import LowStockAlerts from '~/components/Dashboard/LowStockAlerts.vue'

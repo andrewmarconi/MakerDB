@@ -20,19 +20,17 @@ const columns: ColumnDef<Part>[] = [
 const cardFields = ['part_type', 'total_stock', 'mpn']
 
 const ITEMS_PER_PAGE = 25
-const page = ref(1)
-const total = ref(0)
 
-async function fetchParts() {
-  const skip = (page.value - 1) * ITEMS_PER_PAGE
-  let url = `/db/parts/?skip=${skip}&limit=${ITEMS_PER_PAGE}`
+async function fetchParts({ page, search }: { page: number; search?: string }) {
+  const skip = (page - 1) * ITEMS_PER_PAGE
+  const params: Record<string, any> = { skip, limit: ITEMS_PER_PAGE }
+  if (search) params.search = search
 
-  const [data, countData] = await Promise.all([
-    $fetch<Part[]>(url),
-    $fetch<{ count: number }>('/db/parts/count')
+  const [items, countData] = await Promise.all([
+    $fetch<Part[]>('/db/parts', { params }),
+    $fetch<{ count: number }>('/db/parts/count', search ? { params: { search } } : undefined)
   ])
-  total.value = countData?.count || 0
-  return data
+  return { items: Array.isArray(items) ? items : [], total: countData?.count || 0 }
 }
 </script>
 
@@ -47,12 +45,9 @@ async function fetchParts() {
       model-key="inventory"
       :column-defs="columns"
       :card-fields="cardFields"
-      :can-search="false"
-      :server-side-pagination="true"
-      :total="total"
-      :items-per-page="ITEMS_PER_PAGE"
       :default-sort="{ id: 'name', desc: false }"
       :fetch-fn="fetchParts"
+      :items-per-page="ITEMS_PER_PAGE"
     >
       <template #part_type-cell="{ row }">
         <UBadge

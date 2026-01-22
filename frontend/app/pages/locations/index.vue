@@ -17,13 +17,6 @@ const columns: ColumnDef<InventoryLocation>[] = [
 
 const cardFields = ['description']
 
-const { data, pending, error, refresh } = await useAsyncData(
-  'locations',
-  (_nuxtApp, { signal }) => $fetch<InventoryLocation[]>('/db/inventory/locations/', { signal }),
-)
-
-const isLoading = computed(() => pending.value || !!error.value)
-
 const showDeleteModal = ref(false)
 const locationToDelete = ref<InventoryLocation | null>(null)
 const isDeleting = ref(false)
@@ -41,7 +34,6 @@ async function handleDelete() {
     })
     showDeleteModal.value = false
     locationToDelete.value = null
-    refresh()
   } catch (err: any) {
     deleteError.value = err.data?.detail || err.message || 'Failed to delete location'
   } finally {

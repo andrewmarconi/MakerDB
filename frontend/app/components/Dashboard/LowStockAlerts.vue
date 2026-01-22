@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 const { data: alerts } = await useApiFetch('/inventory/low-stock')
 </script>
 

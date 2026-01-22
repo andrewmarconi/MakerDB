@@ -74,8 +74,6 @@ export type DataListViewProps = {
     cardFields?: string[];
     /** Display mode - 'table' for rows, 'grid' for cards (default: 'table') */
     viewMode?: 'table' | 'grid';
-    /** External data (when provided, bypasses internal fetch) */
-    data?: any[];
     /** Show clickable link to detail page (default: true) */
     canView?: boolean;
     /** Show delete action on rows (default: true) */
@@ -88,14 +86,8 @@ export type DataListViewProps = {
     canColumnToggle?: boolean;
     /** Enable pagination (default: true) */
     canPaginate?: boolean;
-    /** Use server-side pagination (fetches page at a time, default: true) */
-    serverSidePagination?: boolean;
-    /** Total number of items (for server-side pagination) */
-    total?: number;
     /** Default sort configuration */
     defaultSort?: { id: string; desc: boolean };
-    /** Custom filter UI component */
-    filterUI?: any;
     /** Number of items per page (default: 25) */
     itemsPerPage?: number;
     /** Override create button label (default: "New {label}") */
@@ -104,8 +96,8 @@ export type DataListViewProps = {
     emptyMessage?: string;
     /** Override detail route (defaults to MODEL_REGISTRY[modelKey].detailRoute) */
     detailRoute?: string;
-    /** Custom data fetch function (for server-side pagination/filtering) */
-    fetchFn?: () => Promise<any[]>;
+    /** Custom fetch function - receives { page, search, sort } params, returns { items, total } */
+    fetchFn?: (params: { page: number; search?: string; sort?: { id: string; desc: boolean } }) => Promise<{ items: any[]; total: number }>;
     /** Action buttons for card view */
     cardActions?: ActionConfig[];
     /** Action buttons for table rows */

@@ -20,7 +20,7 @@
 | Technology | Purpose |
 |------------|---------|
 | **Nuxt 4** | Vue 3 meta-framework with file-based routing |
-| **Vue 3.5** | Composition API with `<script setup>` |
+| **Vue 3.5** | Composition API with `<script setup lang="ts">` |
 | **@nuxt/ui** | UI component library (Tailwind-based) |
 | **@nuxt/eslint** | ESLint integration |
 | **@vueuse/core** | Vue composables |
@@ -213,4 +213,4 @@ npm run test:nuxt  # Nuxt integration tests
 3. **Naming**: `snake_case` for functions/variables, `PascalCase` for classes.
 4. **Line Length**: 120 characters (handled by ruff).
 5. **Pydantic Schemas**: Separate read (`CompanySchema`) and write (`CompanyCreate`) schemas.
-6. **Vue Components**: `<script setup>` with Composition API.
+6. **Vue Components**: `<script setup lang="ts">` with Composition API.

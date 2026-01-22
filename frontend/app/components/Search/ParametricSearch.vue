@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { parseUnit } from '~/utils/unit-parser'
 
 const props = defineProps({

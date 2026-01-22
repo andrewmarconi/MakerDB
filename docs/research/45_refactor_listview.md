@@ -25,7 +25,7 @@ Each listview page currently:
 
 **Example (projects/index.vue) - 58 lines:**
 ```vue
-<script setup>
+<script setup lang="ts">
 const { data, pending, error } = await useAsyncData(...)
 const isLoading = computed(() => pending.value || !!error.value)
 </script>
@@ -58,7 +58,7 @@ const isLoading = computed(() => pending.value || !!error.value)
 
 **Example (projects/index.vue) - ~20 lines:**
 ```vue
-<script setup>
+<script setup lang="ts">
 const columns = [
   { accessorKey: 'name', header: 'Project Name' },
   { accessorKey: 'status', header: 'Status' },

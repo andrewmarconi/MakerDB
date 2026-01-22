@@ -12,7 +12,7 @@ Nuxt uses file-based routing. Pages are automatically generated based on the fil
 
 1. Create a Vue file in `app/pages/`
 2. Use the `<template>` for markup
-3. Use `<script setup>` for logic (Composition API)
+3. Use `<script setup lang="ts">` for logic (Composition API)
 4. No import needed - the page is auto-registered
 
 Example:

@@ -9,6 +9,19 @@ export function useApiFetch<T = any>(url: string, options: any = {}) {
   })
 }
 
+export async function apiGet<T = any>(url: string, params?: Record<string, any>, options?: any): Promise<T> {
+  return $fetch<T>(url, {
+    method: 'GET',
+    baseURL: '/db',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    },
+    params,
+    ...options
+  })
+}
+
 export async function apiPost<T = any>(url: string, data?: any, options?: any): Promise<T> {
   return $fetch<T>(url, {
     method: 'POST',

@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 const { data: stats } = await useApiFetch('/dashboard/stats') // Assuming a stats endpoint
 
 const totalValue = computed(() => stats.value?.inventoryValue || 0)
