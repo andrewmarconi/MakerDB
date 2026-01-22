@@ -67,17 +67,15 @@ onMounted(fetchParts)
       <p class="text-gray-500 dark:text-gray-400">Manage your parts and track stock levels.</p>
     </div>
 
-    <DataTable
-      :data="parts as Part[]"
-      :columns="columns"
+    <DataListView
+      model-key="inventory"
+      :column-defs="columns"
       :card-fields="cardFields"
-      clickable-column="name"
+      :can-paginate="false"
+      :can-search="false"
       :default-sort="{ id: 'name', desc: false }"
       :loading="pending"
-      :on-row-click="(item) => ({ path: `/inventory/${item.id}` })"
-      searchable
-      create-route="/inventory/new"
-      create-label="Add Part"
+      :data="parts"
     >
       <template #part_type-cell="{ row }">
         <UBadge
@@ -92,9 +90,9 @@ onMounted(fetchParts)
       <template #total_stock-cell="{ row }">
         <div class="font-mono">{{ row.original.total_stock ?? 0 }}</div>
       </template>
-    </DataTable>
+    </DataListView>
 
-    <div v-if="total > ITEMS_PER_PAGE" class="flex justify-center">
+    <div v-if="total > ITEMS_PER_PAGE" class="flex justify-center mt-4">
       <UPagination
         v-model:page="page"
         :total="total"

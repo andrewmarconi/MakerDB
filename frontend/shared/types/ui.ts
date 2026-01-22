@@ -62,6 +62,53 @@ export type DataTableProps<T> = {
 };
 
 // ============================================================================
+// DataListView Types
+// ============================================================================
+
+export type DataListViewProps = {
+    /** Model key from MODEL_REGISTRY - determines API, routes, labels */
+    modelKey: string;
+    /** Column definitions (TanStack Table ColumnDef format) */
+    columnDefs: any[];
+    /** Fields to display in grid/card view */
+    cardFields?: string[];
+    /** Display mode - 'table' for rows, 'grid' for cards (default: 'table') */
+    viewMode?: 'table' | 'grid';
+    /** External data (when provided, bypasses internal fetch) */
+    data?: any[];
+    /** Show clickable link to detail page (default: true) */
+    canView?: boolean;
+    /** Show delete action on rows (default: true) */
+    canDelete?: boolean;
+    /** Show "New" button in toolbar (default: true) */
+    canCreate?: boolean;
+    /** Show search input (default: true) */
+    canSearch?: boolean;
+    /** Show column visibility toggle (default: true) */
+    canColumnToggle?: boolean;
+    /** Enable pagination (default: true) */
+    canPaginate?: boolean;
+    /** Default sort configuration */
+    defaultSort?: { id: string; desc: boolean };
+    /** Custom filter UI component */
+    filterUI?: any;
+    /** Number of items per page (default: 25) */
+    itemsPerPage?: number;
+    /** Override create button label (default: "New {label}") */
+    createLabel?: string;
+    /** Override empty state message (default: "No {labelPlural} found.") */
+    emptyMessage?: string;
+    /** Override detail route (defaults to MODEL_REGISTRY[modelKey].detailRoute) */
+    detailRoute?: string;
+    /** Custom data fetch function (for server-side pagination/filtering) */
+    fetchFn?: () => Promise<any[]>;
+    /** Action buttons for card view */
+    cardActions?: ActionConfig[];
+    /** Action buttons for table rows */
+    tableActions?: ActionConfig[];
+};
+
+// ============================================================================
 // DataFormView Types
 // ============================================================================
 
