@@ -78,40 +78,30 @@ const entityNameCache = useStorage('breadcrumb-entity-names', {})
 
 const breadcrumbs = ref([])
 
-async function fetchEntityName(path, segment, index) {
+async function fetchEntityName(path, segment, index, parts) {
   const cacheKey = `${path}`
   if (entityNameCache.value[cacheKey]) {
     return entityNameCache.value[cacheKey]
   }
 
-  const segmentLower = segment.toLowerCase()
+  const isUuid = segment.length === 36 && /^[0-9a-f-]+$/i.test(segment)
+  if (!isUuid || index === 0) {
+    return null
+  }
+
+  const parentSegment = parts[index - 1]?.toLowerCase()
   let apiEndpoint = null
 
-  if (segmentLower === 'projects' && index < route.path.split('/').length - 1) {
-    const nextSegment = route.path.split('/')[index + 1]
-    if (nextSegment && nextSegment.length === 36) {
-      apiEndpoint = `/db/projects/${nextSegment}`
-    }
-  } else if (segmentLower === 'inventory' && index < route.path.split('/').length - 1) {
-    const nextSegment = route.path.split('/')[index + 1]
-    if (nextSegment && nextSegment.length === 36) {
-      apiEndpoint = `/db/parts/${nextSegment}`
-    }
-  } else if (segmentLower === 'companies' && index < route.path.split('/').length - 1) {
-    const nextSegment = route.path.split('/')[index + 1]
-    if (nextSegment && nextSegment.length === 36) {
-      apiEndpoint = `/db/companies/${nextSegment}`
-    }
-  } else if (segmentLower === 'locations' && index < route.path.split('/').length - 1) {
-    const nextSegment = route.path.split('/')[index + 1]
-    if (nextSegment && nextSegment.length === 36) {
-      apiEndpoint = `/db/inventory/locations/${nextSegment}`
-    }
-  } else if (segmentLower === 'purchasing' && index < route.path.split('/').length - 1) {
-    const nextSegment = route.path.split('/')[index + 1]
-    if (nextSegment && nextSegment.length === 36) {
-      apiEndpoint = `/db/procurement/orders/${nextSegment}`
-    }
+  if (parentSegment === 'projects') {
+    apiEndpoint = `/db/projects/${segment}`
+  } else if (parentSegment === 'inventory') {
+    apiEndpoint = `/db/parts/${segment}`
+  } else if (parentSegment === 'companies') {
+    apiEndpoint = `/db/companies/${segment}`
+  } else if (parentSegment === 'locations') {
+    apiEndpoint = `/db/inventory/locations/${segment}`
+  } else if (parentSegment === 'purchasing') {
+    apiEndpoint = `/db/procurement/orders/${segment}`
   }
 
   if (apiEndpoint) {
@@ -145,7 +135,7 @@ async function updateBreadcrumbs() {
     const part = parts[i]
     currentPath += '/' + part
 
-    const name = await fetchEntityName(currentPath, part, i)
+    const name = await fetchEntityName(currentPath, part, i, parts)
     const label = name || part.charAt(0).toUpperCase() + part.slice(1)
 
     crumbs.push({

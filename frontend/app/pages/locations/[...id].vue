@@ -31,14 +31,6 @@ const { data: location, refresh: refreshLocation } = await useApiFetch(
 
 const { data: locations, refresh: refreshLocations } = await useApiFetch('/inventory/locations')
 
-const path = computed(() => {
-  const result: any[] = []
-  if (!locations.value || !currentLocationId.value) return result
-  const current = locations.value.find((l: any) => l.id === currentLocationId.value)
-  if (current) result.push(current)
-  return result
-})
-
 const { data: stockAtLocation, refresh: refreshStock } = await useApiFetch(
   `/inventory/locations/${currentLocationId.value}/stock`,
   { immediate: !!currentLocationId.value }
@@ -152,7 +144,6 @@ async function handleStockRefresh() {
           <h1 class="text-2xl font-bold">
             {{ location?.name || 'Storage Locations' }}
           </h1>
-          <LocationBreadcrumbs v-if="path.length > 0" :path="path" class="mt-1" />
         </div>
       </div>
       <div class="flex items-center gap-2">
