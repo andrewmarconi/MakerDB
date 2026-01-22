@@ -272,8 +272,8 @@ function getDetailRouteFromItem(item: T) {
           </template>
           <template v-else>
             <NuxtLink
-              v-if="canView && getColumnSlotKey(col).replace('-cell', '') === modelConfig?.clickableColumn && getDetailRoute(slotProps.row)"
-              :to="getDetailRoute(slotProps.row)!"
+              v-if="canView && getColumnSlotKey(col).replace('-cell', '') === modelConfig?.clickableColumn && getDetailRoute(slotProps.row.original)"
+              :to="getDetailRoute(slotProps.row.original)!"
               class="font-medium text-primary-500 hover:underline"
             >
               {{ slotProps.getValue() }}
