@@ -23,7 +23,7 @@ updates:
     multi-ecosystem-group: "frontend"
 
   - package-ecosystem: "uv"
-    directory: "/backend"
+    directory: "/" # Because that's where the pyproject.toml and uv.lock exist.
     patterns: ["*"]
     multi-ecosystem-group: "backend"
 
