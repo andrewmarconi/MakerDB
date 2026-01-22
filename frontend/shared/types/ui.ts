@@ -96,8 +96,6 @@ export type DataListViewProps = {
     emptyMessage?: string;
     /** Override detail route (defaults to MODEL_REGISTRY[modelKey].detailRoute) */
     detailRoute?: string;
-    /** Custom fetch function - receives { page, search, sort } params, returns { items, total } */
-    fetchFn?: (params: { page: number; search?: string; sort?: { id: string; desc: boolean } }) => Promise<{ items: any[]; total: number }>;
     /** Action buttons for card view */
     cardActions?: ActionConfig[];
     /** Action buttons for table rows */

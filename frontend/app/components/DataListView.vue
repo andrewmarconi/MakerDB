@@ -1,10 +1,7 @@
 <script setup lang="ts" generic="T">
 import { useStorage } from '@vueuse/core'
-import { useSlots } from 'vue'
 import type { DropdownMenuItem } from '@nuxt/ui'
-import { MODEL_REGISTRY, type ModelKey } from '#shared/config/models'
-import type { DataListViewProps, ActionConfig } from '#shared/types'
-import { apiGet } from '#imports'
+import type { DataListViewProps } from '#shared/types'
 
 const props = withDefaults(defineProps<DataListViewProps>(), {
   viewMode: 'table',
@@ -59,43 +56,36 @@ const emptyStateMessage = computed(() => props.emptyMessage || `No ${modelConfig
 const createRoute = computed(() => `${detailRoute.value}/new`)
 const getDetailRoute = (item: any) => `${detailRoute.value}/${item.id}`
 
-async function defaultFetch({ page, search, sort }: { page: number; search?: string; sort?: { id: string; desc: boolean } }) {
-  const skip = (page - 1) * props.itemsPerPage
-  const params: Record<string, any> = { skip, limit: props.itemsPerPage }
+const skip = computed(() => (page.value - 1) * props.itemsPerPage)
 
-  if (search) {
-    params.search = search
+const itemsQuery = computed(() => {
+  const params: Record<string, any> = { skip: skip.value, limit: props.itemsPerPage }
+  if (search.value) params.search = search.value
+  if (props.defaultSort) {
+    const order = props.defaultSort.desc ? '-' : ''
+    params.ordering = `${order}${props.defaultSort.id}`
   }
+  return params
+})
 
-  if (sort) {
-    const order = sort.desc ? '-' : ''
-    params.ordering = `${order}${sort.id}`
-  }
+const countQuery = computed(() => {
+  if (!search.value) return undefined
+  return { search: search.value }
+})
 
-  const [items, countData] = await Promise.all([
-    apiGet<T[]>(apiPath.value, params),
-    apiGet<{ count: number }>(`${apiPath.value}/count`, search ? { search } : undefined)
-  ])
-  return { items: Array.isArray(items) ? items : [], total: countData?.count || 0 }
-}
-
-const fetchParams = computed(() => ({
-  page: page.value,
-  search: search.value || undefined,
-  sort: props.defaultSort
-}))
-
-const { data, pending, error, refresh } = await useAsyncData(
-  `${props.modelKey}-list`,
-  async () => {
-    const fetchFn = props.fetchFn || defaultFetch
-    return await fetchFn(fetchParams.value)
-  },
-  { watch: [fetchParams], deep: true }
+const { data: items, pending, error, refresh } = await useAsyncData(
+  `${props.modelKey}-items`,
+  () => useApiFetch<T[]>(apiPath.value, { params: itemsQuery.value }),
+  { watch: [itemsQuery] }
 )
 
-const items = computed(() => data.value?.items || [])
-const total = computed(() => data.value?.total || 0)
+const { data: countData } = await useAsyncData(
+  `${props.modelKey}-count`,
+  () => useApiFetch<{ count: number }>(`${apiPath.value}/count`, { params: countQuery.value }),
+  { watch: [countQuery] }
+)
+
+const total = computed(() => countData.value?.count || 0)
 const totalPages = computed(() => Math.ceil(total.value / props.itemsPerPage))
 
 const visibleColumns = computed(() => {
@@ -247,7 +237,7 @@ function getDetailRouteFromItem(item: T) {
     </UCard>
 
     <USkeleton v-if="pending" class="h-96" />
-    <div v-else-if="!pending && items.length === 0" class="text-center py-12 text-gray-500">
+    <div v-else-if="!pending && (!items || items.length === 0)" class="text-center py-12 text-gray-500">
       <slot name="empty">
         <UIcon name="i-heroicons-folder-open" class="w-12 h-12 mx-auto mb-4 opacity-50" />
         <p>{{ emptyStateMessage }}</p>
