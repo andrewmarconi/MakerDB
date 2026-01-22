@@ -72,14 +72,9 @@ const cardActions = computed(() => [
 
 <template>
   <div class="space-y-6">
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div>
-        <h1 class="text-2xl font-bold">Companies</h1>
-        <p class="text-gray-500 dark:text-gray-400">Manage manufacturers and vendors.</p>
-      </div>
-      <div class="flex items-center gap-2">
-        <UButton icon="i-heroicons-plus" label="Add Company" color="primary" to="/companies/new" />
-      </div>
+    <div>
+      <h1 class="text-2xl font-bold">Companies</h1>
+      <p class="text-gray-500 dark:text-gray-400">Manage manufacturers and vendors.</p>
     </div>
     <template v-if="error">
       <UAlert 
@@ -89,16 +84,19 @@ const cardActions = computed(() => [
         icon="i-lucide-terminal"
       />
     </template>
-    <DataTable 
-      :data="(data || []) as Company[]" 
-      :columns="columns" 
-      :card-fields="cardFields" 
+    <DataTable
+      :data="(data || []) as Company[]"
+      :columns="columns"
+      :card-fields="cardFields"
       :card-actions="cardActions"
       searchable
-      clickable-column="name" 
-      :default-sort="{ id: 'created_at', desc: true }" 
+      clickable-column="name"
+      :default-sort="{ id: 'created_at', desc: true }"
       :loading="isLoading"
-      :on-row-click="(item) => ({ path: `/companies/${item.id}` })">
+      :on-row-click="(item) => ({ path: `/companies/${item.id}` })"
+      create-route="/companies/new"
+      create-label="Add Company"
+    >
       <template #is_manufacturer-cell="{ row }">
         <UIcon 
           :name="row.original.is_manufacturer ? 'i-heroicons-check-circle' : 'i-heroicons-x-circle'" 

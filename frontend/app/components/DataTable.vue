@@ -1,11 +1,8 @@
 <script setup lang="ts" generic="T">
 import { useStorage } from '@vueuse/core'
 import { useSlots } from 'vue'
-import type { ColumnDef } from '@tanstack/vue-table'
 import type { DropdownMenuItem } from '@nuxt/ui'
 import type { DataTableProps, ActionConfig } from '#shared/types'
-
-const slots = useSlots()
 
 const props = withDefaults(defineProps<DataTableProps<T>>(), {
   viewMode: 'table',
@@ -15,26 +12,24 @@ const props = withDefaults(defineProps<DataTableProps<T>>(), {
   searchable: false
 })
 
-const emit = defineEmits<{
-  'row-click': [row: T]
-}>()
-
+const slots = useSlots()
 defineSlots<{
   [K: `${string}-cell`]: (props: { row: any, getValue: () => any }) => any;
   'card-body'?: (props: { item: T }) => any;
   'card-footer'?: (props: { item: T }) => any;
 }>()
 
+const emit = defineEmits<{
+  'row-click': [row: T]
+}>()
+
 const route = useRoute()
 const storageKey = computed(() => props.storageKey || route.path.replace(/\//g, '-'))
-
 const search = ref('')
-
 const viewMode = useStorage(`datatable-${storageKey.value}-viewMode`, props.viewMode)
 watch(() => props.viewMode, (val) => {
   viewMode.value = val
 })
-
 const columnVisibility = useStorage<Record<string, boolean>>(`datatable-${storageKey.value}-columns`, {})
 const page = ref(1)
 
@@ -167,7 +162,7 @@ const columnToggleItems = computed<DropdownMenuItem[]>(() => {
 
 <template>
   <div class="space-y-4">
-    <UCard v-if="searchable || showColumnToggle">
+    <UCard v-if="searchable || showColumnToggle || createRoute">
       <div class="flex flex-col md:flex-row gap-4 mb-4">
         <UInput
           v-if="searchable"
@@ -176,7 +171,7 @@ const columnToggleItems = computed<DropdownMenuItem[]>(() => {
           placeholder="Search..."
           class="flex-1"
         />
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 ml-auto">
           <UButton
             :color="viewMode === 'table' ? 'primary' : 'neutral'"
             :variant="viewMode === 'table' ? 'solid' : 'ghost'"
@@ -196,6 +191,13 @@ const columnToggleItems = computed<DropdownMenuItem[]>(() => {
               <UButton icon="i-heroicons-view-columns" color="neutral" variant="ghost" />
             </template>
           </UDropdownMenu>
+          <UButton
+            v-if="createRoute"
+            icon="i-heroicons-plus"
+            :label="createLabel || 'New'"
+            color="primary"
+            :to="createRoute"
+          />
         </div>
       </div>
     </UCard>

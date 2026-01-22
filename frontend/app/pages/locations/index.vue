@@ -70,14 +70,9 @@ const cardActions = computed(() => [
 
 <template>
   <div class="space-y-6">
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div>
-        <h1 class="text-2xl font-bold">Storage Locations</h1>
-        <p class="text-gray-500 dark:text-gray-400">Browse and manage your storage locations.</p>
-      </div>
-      <div class="flex items-center gap-2">
-        <UButton icon="i-heroicons-plus" label="Add Location" color="primary" to="/locations/new" />
-      </div>
+    <div>
+      <h1 class="text-2xl font-bold">Storage Locations</h1>
+      <p class="text-gray-500 dark:text-gray-400">Browse and manage your storage locations.</p>
     </div>
     <template v-if="error">
       <UAlert 
@@ -86,16 +81,19 @@ const cardActions = computed(() => [
         :description="error.message"
         icon="i-lucide-terminal" />
     </template>
-    <DataTable 
-      :data="(data || []) as InventoryLocation[]" 
-      :columns="columns" 
+    <DataTable
+      :data="(data || []) as InventoryLocation[]"
+      :columns="columns"
       :card-fields="cardFields"
-      :card-actions="cardActions" 
-      searchable 
-      clickable-column="name" 
+      :card-actions="cardActions"
+      searchable
+      clickable-column="name"
       :default-sort="{ id: 'name', desc: false }"
-      :loading="isLoading" 
-      :on-row-click="(item) => ({ path: `/locations/${item.id}` })" />
+      :loading="isLoading"
+      :on-row-click="(item) => ({ path: `/locations/${item.id}` })"
+      create-route="/locations/new"
+      create-label="Add Location"
+    />
     <UModal v-model:open="showDeleteModal">
       <template #header>
         <h3 class="text-lg font-semibold">Delete Location</h3>

@@ -30,14 +30,9 @@ const isLoading = computed(() => pending.value || !!error.value)
 
 <template>
   <div class="space-y-6">
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div>
-        <h1 class="text-2xl font-bold">Projects</h1>
-        <p class="text-gray-500 dark:text-gray-400">Manage your Bill of Materials and calculate production costs.</p>
-      </div>
-      <div class="flex items-center gap-2">
-        <UButton icon="i-heroicons-plus" label="New Project" color="primary" to="/projects/new" />
-      </div>
+    <div>
+      <h1 class="text-2xl font-bold">Projects</h1>
+      <p class="text-gray-500 dark:text-gray-400">Manage your Bill of Materials and calculate production costs.</p>
     </div>
     <template v-if="error">
       <UAlert 
@@ -47,14 +42,17 @@ const isLoading = computed(() => pending.value || !!error.value)
         icon="i-lucide-terminal"
        />
     </template>
-    <DataTable 
-      :data="data as Project[]" 
-      :columns="columns" 
-      :card-fields="cardFields" 
+    <DataTable
+      :data="data as Project[]"
+      :columns="columns"
+      :card-fields="cardFields"
       searchable
-      clickable-column="name" 
-      :default-sort="{ id: 'updated_at', desc: true }" 
+      clickable-column="name"
+      :default-sort="{ id: 'updated_at', desc: true }"
       :loading="isLoading"
-       :on-row-click="(item) => ({ path: `/projects/${item.id}` })" />
+      :on-row-click="(item) => ({ path: `/projects/${item.id}` })"
+      create-route="/projects/new"
+      create-label="New Project"
+    />
   </div>
 </template>

@@ -62,15 +62,9 @@ onMounted(fetchParts)
 
 <template>
   <div class="space-y-6">
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div>
-        <h1 class="text-2xl font-bold">Inventory</h1>
-        <p class="text-gray-500 dark:text-gray-400">Manage your parts and track stock levels.</p>
-      </div>
-      <div class="flex items-center gap-2">
-        <UButton icon="i-heroicons-plus" label="Add Part" color="primary" to="/inventory/new" />
-        <UButton icon="i-heroicons-arrow-up-tray" label="Import" variant="ghost" color="neutral" />
-      </div>
+    <div>
+      <h1 class="text-2xl font-bold">Inventory</h1>
+      <p class="text-gray-500 dark:text-gray-400">Manage your parts and track stock levels.</p>
     </div>
 
     <DataTable
@@ -82,6 +76,8 @@ onMounted(fetchParts)
       :loading="pending"
       :on-row-click="(item) => ({ path: `/inventory/${item.id}` })"
       searchable
+      create-route="/inventory/new"
+      create-label="Add Part"
     >
       <template #part_type-cell="{ row }">
         <UBadge

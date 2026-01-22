@@ -31,14 +31,9 @@ const isLoading = computed(() => pending.value || !!error.value)
 
 <template>
   <div class="space-y-6">
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div>
-        <h1 class="text-2xl font-bold">Purchasing</h1>
-        <p class="text-gray-500 dark:text-gray-400">Track your component orders and manage supplier relationships.</p>
-      </div>
-      <div class="flex items-center gap-2">
-        <UButton icon="i-heroicons-plus" label="New Order" color="primary" />
-      </div>
+    <div>
+      <h1 class="text-2xl font-bold">Purchasing</h1>
+      <p class="text-gray-500 dark:text-gray-400">Track your component orders and manage supplier relationships.</p>
     </div>
 
     <template v-if="error">
@@ -49,14 +44,16 @@ const isLoading = computed(() => pending.value || !!error.value)
         icon="i-lucide-terminal"
        />
     </template>
-    <DataTable 
-      :data="data as Order[]" 
-      :columns="columns" 
-      :card-fields="cardFields" 
+    <DataTable
+      :data="data as Order[]"
+      :columns="columns"
+      :card-fields="cardFields"
       searchable
-      clickable-column="order_id" 
+      clickable-column="order_id"
       :loading="isLoading"
-      :on-row-click="(item) => ({ path: `/purchasing/${item.id}` })">
+      :on-row-click="(item) => ({ path: `/purchasing/${item.id}` })"
+      create-route="/purchasing/new"
+      create-label="New Order">
       <template #status-cell="{ row }">
         <StatusBadge :status="row.original.status" />
       </template>

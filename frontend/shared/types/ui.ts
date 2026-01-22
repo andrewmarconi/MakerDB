@@ -21,23 +21,44 @@ export type RangeType = 'letters' | 'numbers';
  * @template T The type of data being displayed
  */
 export type DataTableProps<T> = {
+    /** Array of data items to display in the table */
     data: T[];
-    columns: any[]; // Using any here to avoid tanstack dependency in declaration file if not needed
+    /** Column definitions (TanStack Table ColumnDef format) */
+    columns: any[];
+    /** Display mode - 'table' for rows, 'grid' for cards (default: 'table') */
     viewMode?: 'table' | 'grid';
+    /** Key for persisting view preferences in localStorage (default: route path) */
     storageKey?: string;
+    /** Fields to display in grid/card view */
     cardFields: string[];
+    /** Action buttons shown in card footer dropdown */
     cardActions?: ActionConfig[];
+    /** Action buttons for table rows (not yet implemented) */
     tableActions?: ActionConfig[];
+    /** Default sort configuration */
     defaultSort?: { id: string; desc: boolean };
+    /** Enable search input in toolbar (default: false) */
     searchable?: boolean;
+    /** Custom filter UI component (not yet implemented) */
     filterUI?: any;
+    /** Show column visibility toggle dropdown (default: true) */
     showColumnToggle?: boolean;
+    /** Enable pagination (default: true) */
     paginatable?: boolean;
+    /** Number of items per page (default: 25) */
     itemsPerPage?: number;
+    /** Column key that renders as a clickable link */
     clickableColumn?: string;
+    /** Handler for row clicks - return { path } to navigate */
     onRowClick?: (row: T) => void | { path: string };
+    /** Custom empty state content */
     emptyState?: string | any;
+    /** Show loading skeleton */
     loading?: boolean;
+    /** Route for creating new items (e.g., '/inventory/new') */
+    createRoute?: string;
+    /** Label for the create button (e.g., 'Add Part', 'New Order') */
+    createLabel?: string;
 };
 
 // ============================================================================
