@@ -22,42 +22,18 @@ const cardFields = ['part_type', 'total_stock', 'mpn']
 const ITEMS_PER_PAGE = 25
 const page = ref(1)
 const total = ref(0)
-const parts = ref<Part[]>([])
-const pending = ref(false)
-const sorting = ref<{ id: string; desc: boolean }[]>([])
 
 async function fetchParts() {
-  pending.value = true
-  try {
-    const skip = (page.value - 1) * ITEMS_PER_PAGE
-    let url = `/db/parts/?skip=${skip}&limit=${ITEMS_PER_PAGE}`
+  const skip = (page.value - 1) * ITEMS_PER_PAGE
+  let url = `/db/parts/?skip=${skip}&limit=${ITEMS_PER_PAGE}`
 
-    if (sorting.value.length > 0) {
-      const sort = sorting.value[0]!
-      const order = sort.desc ? '-' : ''
-      url += `&ordering=${order}${sort.id}`
-    }
-
-    const [data, countData] = await Promise.all([
-      $fetch<Part[]>(url),
-      $fetch<{ count: number }>('/db/parts/count')
-    ])
-    parts.value = Array.isArray(data) ? data : []
-    total.value = countData?.count || 0
-  } catch (e) {
-    console.error('Failed to fetch parts:', e)
-    parts.value = []
-    total.value = 0
-  } finally {
-    pending.value = false
-  }
+  const [data, countData] = await Promise.all([
+    $fetch<Part[]>(url),
+    $fetch<{ count: number }>('/db/parts/count')
+  ])
+  total.value = countData?.count || 0
+  return data
 }
-
-watch([page, sorting], () => {
-  fetchParts()
-}, { deep: true })
-
-onMounted(fetchParts)
 </script>
 
 <template>
@@ -71,11 +47,12 @@ onMounted(fetchParts)
       model-key="inventory"
       :column-defs="columns"
       :card-fields="cardFields"
-      :can-paginate="false"
       :can-search="false"
+      :server-side-pagination="true"
+      :total="total"
+      :items-per-page="ITEMS_PER_PAGE"
       :default-sort="{ id: 'name', desc: false }"
-      :loading="pending"
-      :data="parts"
+      :fetch-fn="fetchParts"
     >
       <template #part_type-cell="{ row }">
         <UBadge
@@ -91,14 +68,5 @@ onMounted(fetchParts)
         <div class="font-mono">{{ row.original.total_stock ?? 0 }}</div>
       </template>
     </DataListView>
-
-    <div v-if="total > ITEMS_PER_PAGE" class="flex justify-center mt-4">
-      <UPagination
-        v-model:page="page"
-        :total="total"
-        :items-per-page="ITEMS_PER_PAGE"
-        :show-controls="true"
-      />
-    </div>
   </div>
 </template>

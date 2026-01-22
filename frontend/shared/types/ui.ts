@@ -88,6 +88,10 @@ export type DataListViewProps = {
     canColumnToggle?: boolean;
     /** Enable pagination (default: true) */
     canPaginate?: boolean;
+    /** Use server-side pagination (fetches page at a time, default: true) */
+    serverSidePagination?: boolean;
+    /** Total number of items (for server-side pagination) */
+    total?: number;
     /** Default sort configuration */
     defaultSort?: { id: string; desc: boolean };
     /** Custom filter UI component */

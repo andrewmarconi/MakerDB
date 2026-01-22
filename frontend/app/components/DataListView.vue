@@ -13,6 +13,8 @@ const props = withDefaults(defineProps<DataListViewProps>(), {
   canSearch: true,
   canColumnToggle: true,
   canPaginate: true,
+  serverSidePagination: true,
+  total: 0,
   itemsPerPage: 25,
   createLabel: undefined,
   emptyMessage: undefined,
@@ -59,11 +61,24 @@ const emptyStateMessage = computed(() => props.emptyMessage || `No ${modelConfig
 const createRoute = computed(() => `${detailRoute.value}/new`)
 const getDetailRoute = (item: any) => `${detailRoute.value}/${item.id}`
 
+const totalItems = computed(() => {
+  if (props.serverPagination) {
+    return props.total
+  }
+  return data.value?.length || 0
+})
+
+const totalPages = computed(() => Math.ceil(totalItems.value / props.itemsPerPage))
+
 const { data: fetchedData, pending, error, refresh } = await useAsyncData(
   `${props.modelKey}-list`,
   async () => {
     if (props.fetchFn) {
       return props.fetchFn()
+    }
+    if (props.serverSidePagination) {
+      const skip = (page.value - 1) * props.itemsPerPage
+      return await $fetch<T[]>(`${apiPath.value}?skip=${skip}&limit=${props.itemsPerPage}`)
     }
     return await $fetch<T[]>(apiPath.value)
   },
@@ -72,46 +87,45 @@ const { data: fetchedData, pending, error, refresh } = await useAsyncData(
 
 const data = computed(() => props.data !== undefined ? props.data : (fetchedData.value || []))
 
-const filteredData = computed(() => {
-  if (!data.value) return []
+const displayData = computed(() => {
+  if (props.serverPagination) {
+    return data.value
+  }
 
-  if (!search.value) return data.value
+  let result = data.value
 
-  return data.value.filter((item: any) =>
-    props.columnDefs.some((col: any) => {
-      const key = col.id || col.accessorKey
-      const val = item[key]
-      return val && String(val).toLowerCase().includes(search.value.toLowerCase())
-    })
-  )
-})
+  if (!result) return []
 
-const sortedData = computed(() => {
-  const sorted = filteredData.value
-  if (!sorted || sorted.length === 0) return []
+  if (search.value) {
+    result = result.filter((item: any) =>
+      props.columnDefs.some((col: any) => {
+        const key = col.id || col.accessorKey
+        const val = item[key]
+        return val && String(val).toLowerCase().includes(search.value.toLowerCase())
+      })
+    )
+  }
 
   const sortKey = props.defaultSort?.id
-  if (!sortKey) return sorted
+  if (sortKey) {
+    result = [...result].sort((a: any, b: any) => {
+      const aVal = a[sortKey]
+      const bVal = b[sortKey]
+      const desc = props.defaultSort?.desc ?? false
 
-  return [...sorted].sort((a: any, b: any) => {
-    const aVal = a[sortKey]
-    const bVal = b[sortKey]
-    const desc = props.defaultSort?.desc ?? false
+      if (aVal === bVal) return 0
+      if (aVal < bVal) return desc ? 1 : -1
+      return desc ? -1 : 1
+    })
+  }
 
-    if (aVal === bVal) return 0
-    if (aVal < bVal) return desc ? 1 : -1
-    return desc ? -1 : 1
-  })
-})
+  if (props.canPaginate) {
+    const start = (page.value - 1) * props.itemsPerPage
+    const end = start + props.itemsPerPage
+    result = result.slice(start, end)
+  }
 
-const totalPages = computed(() => Math.ceil(sortedData.value.length / props.itemsPerPage))
-
-const paginatedData = computed(() => {
-  if (!props.canPaginate) return sortedData.value
-
-  const start = (page.value - 1) * props.itemsPerPage
-  const end = start + props.itemsPerPage
-  return sortedData.value.slice(start, end)
+  return result
 })
 
 const visibleColumns = computed(() => {
@@ -262,7 +276,7 @@ function getDetailRouteFromItem(item: T) {
     </UCard>
 
     <USkeleton v-if="pending" class="h-96" />
-    <div v-else-if="!pending && paginatedData.length === 0" class="text-center py-12 text-gray-500">
+    <div v-else-if="!pending && displayData.length === 0" class="text-center py-12 text-gray-500">
       <slot name="empty">
         <UIcon name="i-heroicons-folder-open" class="w-12 h-12 mx-auto mb-4 opacity-50" />
         <p>{{ emptyStateMessage }}</p>
@@ -280,7 +294,7 @@ function getDetailRouteFromItem(item: T) {
     <template v-else>
       <UTable
         v-if="viewMode === 'table'"
-        :data="paginatedData"
+        :data="displayData"
         :columns="visibleColumns"
         class="w-full"
         @row-click="handleRowClick"
@@ -315,7 +329,7 @@ function getDetailRouteFromItem(item: T) {
       </UTable>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        <UCard v-for="item in paginatedData" :key="(item as any).id">
+        <UCard v-for="item in displayData" :key="(item as any).id">
           <template #header>
             <NuxtLink
               v-if="canView && modelConfig?.clickableColumn && getDetailRouteFromItem(item)"
@@ -371,7 +385,7 @@ function getDetailRouteFromItem(item: T) {
     <div v-if="canPaginate && totalPages > 1" class="flex justify-center mt-4">
       <UPagination
         v-model:page="page"
-        :total="filteredData.length"
+        :total="totalItems"
         :items-per-page="itemsPerPage"
         :show-controls="true"
       />
