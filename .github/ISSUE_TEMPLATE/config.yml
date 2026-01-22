@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Question or Discussion
+    url: https://github.com/andrewmarconi/MakerDB/discussions
+    about: Ask questions or start a discussion about MakerDB
+  - name: Security Vulnerability
+    url: https://github.com/andrewmarconi/MakerDB/security/advisories/new
+    about: Report a security vulnerability (DO NOT use public issues)
