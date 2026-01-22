@@ -36,7 +36,7 @@
   </UDashboardGroup>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useStorage } from '@vueuse/core'
 
 const route = useRoute()

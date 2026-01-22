@@ -20,7 +20,16 @@ const cardFields = ['quantity', 'mpn', 'status']
 </script>
 
 <template>
-  <DataTable :data="items" :columns="columns" :card-fields="cardFields">
+  <DataListView
+    model-key="inventory"
+    :column-defs="columns"
+    :card-fields="cardFields"
+    :data="items"
+    :can-create="false"
+    :can-delete="false"
+    :can-search="false"
+    :can-paginate="false"
+  >
     <template #designators-cell="{ row }">
       <span class="font-mono text-xs">{{ row.designators.join(', ') }}</span>
     </template>
@@ -55,5 +64,5 @@ const cardFields = ['quantity', 'mpn', 'status']
         </UDropdownMenu>
       </div>
     </template>
-  </DataTable>
+  </DataListView>
 </template>

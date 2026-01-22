@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 const { data: occupancy } = await useApiFetch('/inventory/occupancy')
 </script>
 

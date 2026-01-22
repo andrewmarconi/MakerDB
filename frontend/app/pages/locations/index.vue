@@ -10,20 +10,12 @@ useSeoMeta({
   description: 'Browse and manage your storage hierarchy.'
 })
 
-
 const columns: ColumnDef<InventoryLocation>[] = [
   { accessorKey: 'name', header: 'Location Name' },
   { accessorKey: 'description', header: 'Description' }
 ]
 
-const cardFields = ['description',]
-
-const { data, pending, error, refresh } = await useAsyncData(
-  'locations',
-  (_nuxtApp, { signal }) => $fetch<InventoryLocation[]>('/db/inventory/locations/', { signal }),
-)
-
-const isLoading = computed(() => pending.value || !!error.value)
+const cardFields = ['description']
 
 const showDeleteModal = ref(false)
 const locationToDelete = ref<InventoryLocation | null>(null)
@@ -42,7 +34,6 @@ async function handleDelete() {
     })
     showDeleteModal.value = false
     locationToDelete.value = null
-    refresh()
   } catch (err: any) {
     deleteError.value = err.data?.detail || err.message || 'Failed to delete location'
   } finally {
@@ -51,56 +42,35 @@ async function handleDelete() {
 }
 
 const cardActions = computed(() => [
-  // {
-  //   label: 'Edit',
-  //   icon: 'i-heroicons-pencil-square',
-  //   onClick: (item: InventoryLocation) => navigateTo(`/locations/${item.id}/edit`)
-  // },
-  // {
-  //   label: 'Delete',
-  //   icon: 'i-heroicons-trash',
-  //   variant: 'destructive' as const,
-  //   onClick: (item: InventoryLocation) => {
-  //     locationToDelete.value = item
-  //     showDeleteModal.value = true
-  //   }
-  // }
+  {
+    label: 'Delete',
+    icon: 'i-heroicons-trash',
+    variant: 'destructive' as const,
+    onClick: (item: InventoryLocation) => {
+      locationToDelete.value = item
+      showDeleteModal.value = true
+    }
+  }
 ])
 </script>
 
 <template>
-  <div class="space-y-6">
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div>
-        <h1 class="text-2xl font-bold">Storage Locations</h1>
-        <p class="text-gray-500 dark:text-gray-400">Browse and manage your storage locations.</p>
-      </div>
-      <div class="flex items-center gap-2">
-        <UButton icon="i-heroicons-plus" label="Add Location" color="primary" to="/locations/new" />
-      </div>
-    </div>
-    <template v-if="error">
-      <UAlert 
-        color="error" 
-        title="There was a problem loading data" 
-        :description="error.message"
-        icon="i-lucide-terminal" />
-    </template>
-    <DataTable 
-      :data="(data || []) as InventoryLocation[]" 
-      :columns="columns" 
-      :card-fields="cardFields"
-      :card-actions="cardActions" 
-      searchable 
-      clickable-column="name" 
-      :default-sort="{ id: 'name', desc: false }"
-      :loading="isLoading" 
-      :on-row-click="(item) => ({ path: `/locations/${item.id}` })" />
-    <UModal v-model:open="showDeleteModal">
-      <template #header>
-        <h3 class="text-lg font-semibold">Delete Location</h3>
-      </template>
-      <template #body>
+  <DataListView
+    model-key="locations"
+    :column-defs="columns"
+    :card-fields="cardFields"
+    :card-actions="cardActions"
+    :can-delete="false"
+    :default-sort="{ id: 'name', desc: false }"
+  />
+
+  <UModal v-model="showDeleteModal">
+    <template #content>
+      <UCard>
+        <template #header>
+          <h3 class="text-lg font-semibold">Delete Location</h3>
+        </template>
+
         <p class="text-gray-600 dark:text-gray-400">
           Are you sure you want to delete <strong>{{ locationToDelete?.name }}</strong>? This action cannot be undone.
         </p>
@@ -111,14 +81,14 @@ const cardActions = computed(() => [
           icon="i-heroicons-exclamation-circle" 
           class="mt-4"
           :description="deleteError" />
-      </template>
 
-      <template #footer>
-        <div class="flex items-center justify-end gap-3">
-          <UButton label="Cancel" color="neutral" variant="ghost" @click="showDeleteModal = false" />
-          <UButton label="Delete" color="error" :loading="isDeleting" @click="handleDelete" />
-        </div>
-      </template>
-    </UModal>
-  </div>
+        <template #footer>
+          <div class="flex items-center justify-end gap-3">
+            <UButton label="Cancel" color="neutral" variant="ghost" @click="showDeleteModal = false" />
+            <UButton label="Delete" color="error" :loading="isDeleting" @click="handleDelete" />
+          </div>
+        </template>
+      </UCard>
+    </template>
+  </UModal>
 </template>

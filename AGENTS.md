@@ -145,7 +145,7 @@ async def list_items():
 
 ### Vue/TypeScript (Frontend)
 
-**Composition API**: Use `<script setup>` with Composition API.
+**Composition API**: Use `<script setup lang="ts">` with Composition API.
 
 **TypeScript**: Enable strict mode. Define interfaces for complex props. Use `PropType` for array/object props.
 

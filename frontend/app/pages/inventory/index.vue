@@ -18,70 +18,20 @@ const columns: ColumnDef<Part>[] = [
 ]
 
 const cardFields = ['part_type', 'total_stock', 'mpn']
-
-const ITEMS_PER_PAGE = 25
-const page = ref(1)
-const total = ref(0)
-const parts = ref<Part[]>([])
-const pending = ref(false)
-const sorting = ref<{ id: string; desc: boolean }[]>([])
-
-async function fetchParts() {
-  pending.value = true
-  try {
-    const skip = (page.value - 1) * ITEMS_PER_PAGE
-    let url = `/db/parts/?skip=${skip}&limit=${ITEMS_PER_PAGE}`
-
-    if (sorting.value.length > 0) {
-      const sort = sorting.value[0]!
-      const order = sort.desc ? '-' : ''
-      url += `&ordering=${order}${sort.id}`
-    }
-
-    const [data, countData] = await Promise.all([
-      $fetch<Part[]>(url),
-      $fetch<{ count: number }>('/db/parts/count')
-    ])
-    parts.value = Array.isArray(data) ? data : []
-    total.value = countData?.count || 0
-  } catch (e) {
-    console.error('Failed to fetch parts:', e)
-    parts.value = []
-    total.value = 0
-  } finally {
-    pending.value = false
-  }
-}
-
-watch([page, sorting], () => {
-  fetchParts()
-}, { deep: true })
-
-onMounted(fetchParts)
 </script>
 
 <template>
   <div class="space-y-6">
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div>
-        <h1 class="text-2xl font-bold">Inventory</h1>
-        <p class="text-gray-500 dark:text-gray-400">Manage your parts and track stock levels.</p>
-      </div>
-      <div class="flex items-center gap-2">
-        <UButton icon="i-heroicons-plus" label="Add Part" color="primary" to="/inventory/new" />
-        <UButton icon="i-heroicons-arrow-up-tray" label="Import" variant="ghost" color="neutral" />
-      </div>
+    <div>
+      <h1 class="text-2xl font-bold">Inventory</h1>
+      <p class="text-gray-500 dark:text-gray-400">Manage your parts and track stock levels.</p>
     </div>
 
-    <DataTable
-      :data="parts as Part[]"
-      :columns="columns"
+    <DataListView
+      model-key="inventory"
+      :column-defs="columns"
       :card-fields="cardFields"
-      clickable-column="name"
       :default-sort="{ id: 'name', desc: false }"
-      :loading="pending"
-      :on-row-click="(item) => ({ path: `/inventory/${item.id}` })"
-      searchable
     >
       <template #part_type-cell="{ row }">
         <UBadge
@@ -96,15 +46,6 @@ onMounted(fetchParts)
       <template #total_stock-cell="{ row }">
         <div class="font-mono">{{ row.original.total_stock ?? 0 }}</div>
       </template>
-    </DataTable>
-
-    <div v-if="total > ITEMS_PER_PAGE" class="flex justify-center">
-      <UPagination
-        v-model:page="page"
-        :total="total"
-        :items-per-page="ITEMS_PER_PAGE"
-        :show-controls="true"
-      />
-    </div>
+    </DataListView>
   </div>
 </template>

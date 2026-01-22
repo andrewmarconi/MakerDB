@@ -12,7 +12,7 @@
 - Group related components in folders: `components/Dashboard/`
 
 ## Composition API
-- Use `<script setup>` syntax
+- Use `<script setup lang="ts">` syntax
 - Prefer `const` over `let`
 - Use `ref()` for primitives, `reactive()` for objects (or just `ref()` for consistency)
 - Destructure props with `defineProps()`

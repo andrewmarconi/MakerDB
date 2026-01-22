@@ -10,7 +10,6 @@ useSeoMeta({
   description: 'Manage manufacturers and vendors.'
 })
 
-
 const columns: ColumnDef<Company>[] = [
   { accessorKey: 'name', header: 'Company Name' },
   { accessorKey: 'website', header: 'Website' },
@@ -19,13 +18,6 @@ const columns: ColumnDef<Company>[] = [
 ]
 
 const cardFields = ['website', 'is_manufacturer', 'is_vendor', 'created_at']
-
-const { data, pending, error, refresh } = await useAsyncData(
-  'companies',
-  (_nuxtApp, { signal }) => $fetch<Company[]>('/db/companies/', { signal }),
-)
-
-const isLoading = computed(() => pending.value || !!error.value)
 
 const showDeleteModal = ref(false)
 const companyToDelete = ref<Company | null>(null)
@@ -44,7 +36,6 @@ async function handleDelete() {
     })
     showDeleteModal.value = false
     companyToDelete.value = null
-    refresh()
   } catch (err: any) {
     deleteError.value = err.data?.detail || err.message || 'Failed to delete company'
   } finally {
@@ -71,56 +62,37 @@ const cardActions = computed(() => [
 </script>
 
 <template>
-  <div class="space-y-6">
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div>
-        <h1 class="text-2xl font-bold">Companies</h1>
-        <p class="text-gray-500 dark:text-gray-400">Manage manufacturers and vendors.</p>
-      </div>
-      <div class="flex items-center gap-2">
-        <UButton icon="i-heroicons-plus" label="Add Company" color="primary" to="/companies/new" />
-      </div>
-    </div>
-    <template v-if="error">
-      <UAlert 
-        color="error"
-        title="There was a problem loading data"
-        :description="error.message"
-        icon="i-lucide-terminal"
+  <DataListView
+    model-key="companies"
+    :column-defs="columns"
+    :card-fields="cardFields"
+    :card-actions="cardActions"
+    :can-delete="false"
+    :default-sort="{ id: 'created_at', desc: true }"
+  >
+    <template #is_manufacturer-cell="{ row }">
+      <UIcon 
+        :name="row.original.is_manufacturer ? 'i-heroicons-check-circle' : 'i-heroicons-x-circle'" 
+        :class="row.original.is_manufacturer ? 'text-green-500' : 'text-gray-300'"
+        class="w-5 h-5"
       />
     </template>
-    <DataTable 
-      :data="(data || []) as Company[]" 
-      :columns="columns" 
-      :card-fields="cardFields" 
-      :card-actions="cardActions"
-      searchable
-      clickable-column="name" 
-      :default-sort="{ id: 'created_at', desc: true }" 
-      :loading="isLoading"
-      :on-row-click="(item) => ({ path: `/companies/${item.id}` })">
-      <template #is_manufacturer-cell="{ row }">
-        <UIcon 
-          :name="row.original.is_manufacturer ? 'i-heroicons-check-circle' : 'i-heroicons-x-circle'" 
-          :class="row.original.is_manufacturer ? 'text-green-500' : 'text-gray-300'"
-          class="w-5 h-5"
-        />
-      </template>
-      <template #is_vendor-cell="{ row }">
-        <UIcon 
-          :name="row.original.is_vendor ? 'i-heroicons-check-circle' : 'i-heroicons-x-circle'" 
-          :class="row.original.is_vendor ? 'text-green-500' : 'text-gray-300'"
-          class="w-5 h-5"
-        />
-      </template>
-    </DataTable>
+    <template #is_vendor-cell="{ row }">
+      <UIcon 
+        :name="row.original.is_vendor ? 'i-heroicons-check-circle' : 'i-heroicons-x-circle'" 
+        :class="row.original.is_vendor ? 'text-green-500' : 'text-gray-300'"
+        class="w-5 h-5"
+      />
+    </template>
+  </DataListView>
 
-    <UModal v-model:open="showDeleteModal">
-      <template #header>
-        <h3 class="text-lg font-semibold">Delete Company</h3>
-      </template>
+  <UModal v-model="showDeleteModal">
+    <template #content>
+      <UCard>
+        <template #header>
+          <h3 class="text-lg font-semibold">Delete Company</h3>
+        </template>
 
-      <template #body>
         <p class="text-gray-600 dark:text-gray-400">
           Are you sure you want to delete <strong>{{ companyToDelete?.name }}</strong>? This action cannot be undone.
         </p>
@@ -131,14 +103,14 @@ const cardActions = computed(() => [
           icon="i-heroicons-exclamation-circle" 
           class="mt-4"
           :description="deleteError" />
-      </template>
 
-      <template #footer>
-        <div class="flex items-center justify-end gap-3">
-          <UButton label="Cancel" color="neutral" variant="ghost" @click="showDeleteModal = false" />
-          <UButton label="Delete" color="error" :loading="isDeleting" @click="handleDelete" />
-        </div>
-      </template>
-    </UModal>
-  </div>
+        <template #footer>
+          <div class="flex items-center justify-end gap-3">
+            <UButton label="Cancel" color="neutral" variant="ghost" @click="showDeleteModal = false" />
+            <UButton label="Delete" color="error" :loading="isDeleting" @click="handleDelete" />
+          </div>
+        </template>
+      </UCard>
+    </template>
+  </UModal>
 </template>
