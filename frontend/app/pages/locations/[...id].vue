@@ -1,14 +1,25 @@
 <script setup lang="ts">
 import type { tFieldSchema } from '#shared/types/ui'
 
-definePageMeta({
-  title: 'Storage Location'
-})
+const route = useRoute()
+const router = useRouter()
+const toast = useToast()
 
-useSeoMeta({
-  title: 'Storage Location',
-  description: 'View and edit storage location details and contents.'
-})
+const locationId = route.params.id as string
+const isRoot = !locationId || locationId === ''
+
+const tabs = [
+  { key: 'details', slot: 'details', label: 'Details', icon: 'i-heroicons-information-circle' },
+  { key: 'stock', slot: 'stock', label: 'Stock', icon: 'i-heroicons-circle-stack' }
+]
+const activeTab = ref('details')
+
+const { data: location, refresh: refreshLocation } = isRoot ? ref(null) : await useApiFetch(`/inventory/locations/${locationId}`)
+const { data: stockAtLocation, refresh: refreshStock } = isRoot ? ref([]) : await useApiFetch(`/inventory/stock`, { query: { location_id: locationId } })
+const { data: locations } = isRoot ? await useApiFetch('/inventory/locations') : ref(null)
+
+const showDeleteModal = ref(false)
+const isDeleting = ref(false)
 
 const detailsSchema: tFieldSchema[] = [
   { key: 'name', label: 'Location Name', type: 'text', required: true },
@@ -54,18 +65,46 @@ const stockDisplayColumns = [
   },
 ]
 
-async function handleStockUpdated(item: any) {
+async function handleSave() {
+  toast.add({ title: 'Location updated' })
+  await refreshLocation()
+}
+
+async function handleSaveError(err: any) {
+  toast.add({ title: 'Failed to update', description: err.message, color: 'error' })
+}
+
+async function handleStockUpdated() {
   toast.add({ title: 'Stock updated' })
   await refreshStock()
 }
 
-async function handleStockDeleted(id: string) {
+async function handleStockDeleted() {
   toast.add({ title: 'Stock entry removed' })
   await refreshStock()
 }
 
 async function handleStockRefresh() {
   await refreshStock()
+}
+
+async function handleDelete() {
+  if (!location) return
+
+  isDeleting.value = true
+  try {
+    await $fetch(`/inventory/locations/${locationId}`, { method: 'DELETE' })
+    toast.add({ title: 'Location deleted' })
+    router.push('/locations')
+  } catch (err: any) {
+    toast.add({ title: 'Failed to delete', description: err.message, color: 'error' })
+  } finally {
+    isDeleting.value = false
+  }
+}
+
+function navigateToChild(id: string) {
+  router.push(`/locations/${id}`)
 }
 </script>
 
@@ -80,11 +119,9 @@ async function handleStockRefresh() {
           </h1>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <LabelPreview v-if="location" :label="location.name" :sublabel="location.description || 'Storage'"
-          :id="`LOC-${location.id}`" />
-        <UButton v-if="location" icon="i-heroicons-trash" color="error" variant="ghost"
-          @click="showDeleteModal = true" />
+      <div v-if="location" class="flex items-center gap-2">
+        <LabelPreview :label="location.name" :sublabel="location.description || 'Storage'" :id="`LOC-${location.id}`" />
+        <UButton icon="i-heroicons-trash" color="error" variant="ghost" @click="showDeleteModal = true" />
       </div>
     </div>
 
@@ -101,59 +138,22 @@ async function handleStockRefresh() {
             </div>
           </template>
 
-          <DataFormView
-            v-model="location"
-            :schema="detailsSchema"
-            endpoint="/inventory/locations"
-            :entity-id="currentLocationId!"
-            save-mode="put"
-            layout="two-column"
-            @save="handleSave"
-            @save-error="handleSaveError"
-          />
+          <DataFormView v-model="location" :schema="detailsSchema" endpoint="/inventory/locations"
+            :entity-id="currentLocationId!" save-mode="put" layout="two-column" @save="handleSave"
+            @save-error="handleSaveError" />
         </UCard>
       </template>
-
       <template #stock>
-        <DataFormInlineView
-          :items="stockAtLocation || []"
-          :item-schema="stockItemSchema"
-          :display-columns="stockDisplayColumns"
-          :base-endpoint="`/inventory/stock`"
-          title="Stock at this Location"
-          empty-state-message="No stock at this location."
-          @item-updated="handleStockUpdated"
-          @item-deleted="handleStockDeleted"
-          @refresh="handleStockRefresh"
-        />
+        <DataFormInlineView :items="stockAtLocation || []" :item-schema="stockItemSchema"
+          :display-columns="stockDisplayColumns" :base-endpoint="`/inventory/stock`" title="Stock at this Location"
+          empty-state-message="No stock at this location." @item-updated="handleStockUpdated"
+          @item-deleted="handleStockDeleted" @refresh="handleStockRefresh" />
       </template>
     </UTabs>
 
-    <div v-if="!currentLocationId && locations" class="space-y-4">
-      <div class="flex items-center justify-between">
-        <h2 class="text-xl font-semibold">Storage Locations</h2>
-        <UButton icon="i-heroicons-plus" label="New Location" color="primary" to="/locations/new" />
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        <UCard v-for="loc in locations" :key="loc.id"
-          class="cursor-pointer hover:ring-2 hover:ring-primary-500 transition-all group"
-          @click="navigateToChild(loc.id)">
-          <div class="flex items-center gap-3">
-            <div
-              class="p-2 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 group-hover:bg-primary-50 group-hover:text-primary-600 transition-colors">
-              <UIcon name="i-heroicons-archive-box" class="w-6 h-6" />
-            </div>
-            <div>
-              <div class="font-semibold">{{ loc.name }}</div>
-              <div class="text-xs text-gray-500">{{ loc.description || 'No description' }}</div>
-            </div>
-          </div>
-        </UCard>
-      </div>
-    </div>
 
     <UModal v-model:open="showDeleteModal">
-      <template #content>
+      <template #body>
         <UCard>
           <template #header>
             <h3 class="text-lg font-semibold">Delete Location</h3>

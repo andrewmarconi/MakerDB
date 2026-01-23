@@ -11,5 +11,19 @@ services:
     ports:
       - "5432:5432"
 
+  typesense:
+    image: typesense/typesense:29.0
+    restart: always
+    ports:
+      - "8108:8108"
+    volumes:
+      - typesense_data:/data
+    environment:
+      TYPESENSE_API_KEY: ${TYPESENSE_API_KEY:-secret}
+      TYPESENSE_DATA_DIR: /data
+      TYPESENSE_ENABLE_CORS: "true"
+    command: --data-dir /data --api-key=${TYPESENSE_API_KEY:-secret}
+
 volumes:
   postgres_data:
+  typesense_data:

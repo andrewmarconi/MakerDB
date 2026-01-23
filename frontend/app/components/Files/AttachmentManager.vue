@@ -166,7 +166,7 @@ function closePreview() {
       <p v-if="partId" class="text-xs mt-1">Upload files to attach them to this part.</p>
     </div>
 
-    <UModal v-model="previewAttachment">
+    <UModal v-model:open="previewAttachment">
       <UCard v-if="previewAttachment" class="max-w-4xl">
         <template #header>
           <div class="flex items-center justify-between">

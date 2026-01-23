@@ -383,7 +383,7 @@ function setActiveTab(tab: any) {
       </div>
     </div>
 
-    <UModal v-model="showManufacturerForm">
+    <UModal v-model:open="showManufacturerForm">
       <UCard>
         <template #header>
           <h3 class="text-lg font-semibold">Create New Manufacturer</h3>

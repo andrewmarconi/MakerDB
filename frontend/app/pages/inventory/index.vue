@@ -21,12 +21,6 @@ const cardFields = ['part_type', 'total_stock', 'mpn']
 </script>
 
 <template>
-  <div class="space-y-6">
-    <div>
-      <h1 class="text-2xl font-bold">Inventory</h1>
-      <p class="text-gray-500 dark:text-gray-400">Manage your parts and track stock levels.</p>
-    </div>
-
     <DataListView
       model-key="inventory"
       :column-defs="columns"
@@ -47,5 +41,5 @@ const cardFields = ['part_type', 'total_stock', 'mpn']
         <div class="font-mono">{{ row.original.total_stock ?? 0 }}</div>
       </template>
     </DataListView>
-  </div>
+
 </template>

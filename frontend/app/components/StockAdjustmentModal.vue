@@ -130,7 +130,7 @@ watch(isOpen, (val) => {
 </script>
 
 <template>
-  <UModal v-model="isOpen">
+  <UModal v-model:open="isOpen">
     <template #body>
       <UCard>
         <template #header>

@@ -5,6 +5,7 @@ from projects.router import router as projects_router
 from procurement.router import router as procurement_router
 from core.router import router as core_router
 from dashboard.router import router as dashboard_router
+from search.router import router as search_router
 
 app = FastAPI(title="MakerDB API", version="0.1.0")
 
@@ -14,6 +15,7 @@ app.include_router(projects_router)
 app.include_router(procurement_router)
 app.include_router(core_router)
 app.include_router(dashboard_router)
+app.include_router(search_router)
 
 
 @app.get("/health")

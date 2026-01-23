@@ -38,7 +38,8 @@ export default defineNuxtConfig({
 
   nitro: {
     routeRules: {
-      '/db/**': { proxy: 'http://localhost:8000/api/**' }
+      '/db/**': { proxy: 'http://localhost:8000/api/**' },
+      '/api/search/**': { proxy: 'http://localhost:8000/api/search/**' }
     }
   }
 

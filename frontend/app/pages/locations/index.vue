@@ -64,8 +64,8 @@ const cardActions = computed(() => [
     :default-sort="{ id: 'name', desc: false }"
   />
 
-  <UModal v-model="showDeleteModal">
-    <template #content>
+  <UModal v-model:open="showDeleteModal">
+    <template #body>
       <UCard>
         <template #header>
           <h3 class="text-lg font-semibold">Delete Location</h3>

@@ -23,7 +23,7 @@
             <UBreadcrumb :items="breadcrumbs" />
           </template>
           <template #right>
-            <UInput icon="i-heroicons-magnifying-glass" placeholder="Global Search..." class="w-64" shortcut="meta+k" />
+            <GlobalSearch />
             <UColorModeButton />
           </template>
         </UDashboardNavbar>

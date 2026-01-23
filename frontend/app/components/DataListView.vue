@@ -359,23 +359,25 @@ function getDetailRouteFromItem(item: T) {
     </div>
 
     <UModal v-model:open="showDeleteModal">
-      <UCard>
-        <template #header>
-          <h3 class="text-lg font-semibold">Delete {{ modelConfig?.label }}</h3>
-        </template>
-        <p class="text-gray-500">Are you sure you want to delete this {{ modelConfig?.label?.toLowerCase() }}? This action cannot be undone.</p>
-        <template #footer>
-          <div class="flex justify-end gap-2">
-            <UButton label="Cancel" color="neutral" @click="showDeleteModal = false" />
-            <UButton
-              label="Delete"
-              color="error"
-              :loading="isDeleting"
-              @click="handleDelete"
-            />
-          </div>
-        </template>
-      </UCard>
+      <template #body>
+        <UCard>
+          <template #header>
+            <h3 class="text-lg font-semibold">Delete {{ modelConfig?.label }}</h3>
+          </template>
+          <p class="text-gray-500">Are you sure you want to delete this {{ modelConfig?.label?.toLowerCase() }}? This action cannot be undone.</p>
+          <template #footer>
+            <div class="flex justify-end gap-2">
+              <UButton label="Cancel" color="neutral" @click="showDeleteModal = false" />
+              <UButton
+                label="Delete"
+                color="error"
+                :loading="isDeleting"
+                @click="handleDelete"
+              />
+            </div>
+          </template>
+        </UCard>
+      </template>
     </UModal>
   </div>
 </template>

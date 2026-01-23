@@ -9,10 +9,10 @@ const isOpen = ref(false)
 </script>
 
 <template>
-  <UModal v-model="isOpen">
+  <UModal v-model:open="isOpen">
     <UButton icon="i-heroicons-printer" color="neutral" variant="ghost" @click="isOpen = true" />
 
-    <template #content>
+    <template #body>
       <UCard>
         <template #header>
           <div class="flex items-center justify-between">

@@ -29,10 +29,10 @@ const confirmReceipt = () => {
 </script>
 
 <template>
-  <UModal v-model="isOpen">
+  <UModal v-model:open="isOpen">
     <UButton label="Receive Items" icon="i-heroicons-archive-box" color="success" @click="isOpen = true" />
 
-    <template #content>
+    <template #body>
       <UCard>
         <template #header>
           <div class="flex items-center justify-between">

@@ -86,8 +86,8 @@ const cardActions = computed(() => [
     </template>
   </DataListView>
 
-  <UModal v-model="showDeleteModal">
-    <template #content>
+  <UModal v-model:open="showDeleteModal">
+    <template #body>
       <UCard>
         <template #header>
           <h3 class="text-lg font-semibold">Delete Company</h3>
