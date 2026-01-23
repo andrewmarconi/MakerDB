@@ -24,6 +24,17 @@ services:
       TYPESENSE_ENABLE_CORS: "true"
     command: --data-dir /data --api-key=${TYPESENSE_API_KEY:-secret}
 
+  typesense-dashboard:
+    image: ghcr.io/bfritscher/typesense-dashboard:latest
+    restart: always
+    ports:
+      - "8001:80"
+    environment:
+      TYPESENSE_URL: http://typesense:8108
+      TYPESENSE_API_KEY: ${TYPESENSE_API_KEY:-secret}
+    depends_on:
+      - typesense
+
 volumes:
   postgres_data:
   typesense_data:
