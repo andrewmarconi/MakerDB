@@ -5,17 +5,17 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 
-const locationId = route.params.id as string
+const locationId = (Array.isArray(route.params.id) ? route.params.id[0] : route.params.id) || ''
 const isRoot = !locationId || locationId === ''
 
 const tabs = [
   { key: 'details', slot: 'details', label: 'Details', icon: 'i-heroicons-information-circle' },
   { key: 'stock', slot: 'stock', label: 'Stock', icon: 'i-heroicons-circle-stack' }
 ]
-const activeTab = ref('details')
+// const activeTab = ref('details')
 
 const { data: location, refresh: refreshLocation } = isRoot ? ref(null) : await useApiFetch(`/inventory/locations/${locationId}`)
-const { data: stockAtLocation, refresh: refreshStock } = isRoot ? ref([]) : await useApiFetch(`/inventory/stock`, { query: { location_id: locationId } })
+const { data: stockAtLocation, refresh: refreshStock } = isRoot ? ref([]) : await useApiFetch(`/inventory/locations/${locationId}/stock`)
 const { data: locations } = isRoot ? await useApiFetch('/inventory/locations') : ref(null)
 
 const showDeleteModal = ref(false)
@@ -26,44 +26,39 @@ const detailsSchema: tFieldSchema[] = [
   { key: 'description', label: 'Description', type: 'textarea', span: 2 }
 ]
 
-const stockItemSchema: tFieldSchema[] = [
-  { key: 'quantity', label: 'Qty', type: 'number', required: true },
-  {
-    key: 'status', label: 'Status', type: 'select', options: [
-      { label: 'Available', value: 'available' },
-      { label: 'Reserved', value: 'reserved' },
-      { label: 'Allocated', value: 'allocated' },
-      { label: 'Ordered', value: 'ordered' },
-    ]
-  },
+const stockDisplayColumns = [
+  { accessorKey: 'part.name', header: 'Part' },
+  { accessorKey: 'part.mpn', header: 'MPN' },
+  { accessorKey: 'totalQuantity', header: 'Quantity' },
 ]
 
-const stockDisplayColumns = [
-  {
-    key: 'part',
-    label: 'Part',
-    render: (item: any) => {
-      if (!item.part) return h('span', { class: 'text-gray-400' }, '-')
-      return h(NuxtLink, { to: `/inventory/${item.part.id}`, class: 'text-primary-500 hover:underline font-medium' }, () => item.part.name)
+// Group stock entries by part
+const groupedStock = computed(() => {
+  if (!stockAtLocation.value || stockAtLocation.value.length === 0) return []
+
+  const grouped = new Map()
+
+  for (const stock of stockAtLocation.value) {
+    if (!stock.part) continue
+
+    const partId = stock.part.id
+
+    if (grouped.has(partId)) {
+      // Add to existing group
+      const existing = grouped.get(partId)
+      existing.totalQuantity += stock.quantity || 0
+    } else {
+      // Create new group
+      grouped.set(partId, {
+        id: partId,
+        part: stock.part,
+        totalQuantity: stock.quantity || 0
+      })
     }
-  },
-  {
-    key: 'part_mpn',
-    label: 'MPN',
-    render: (item: any) => {
-      if (!item.part?.mpn) return '-'
-      return h('span', { class: 'font-mono text-gray-500 text-sm' }, item.part.mpn)
-    }
-  },
-  {
-    key: 'lot',
-    label: 'Lot',
-    render: (item: any) => {
-      if (!item.lot) return '-'
-      return h('span', { class: 'text-sm' }, item.lot.name)
-    }
-  },
-]
+  }
+
+  return Array.from(grouped.values())
+})
 
 async function handleSave() {
   toast.add({ title: 'Location updated' })
@@ -125,7 +120,7 @@ function navigateToChild(id: string) {
       </div>
     </div>
 
-    <UTabs v-model="activeTab" :items="tabs" class="w-full">
+    <UTabs :items="tabs" class="w-full">
       <template #details>
         <UCard>
           <template #header>
@@ -139,15 +134,33 @@ function navigateToChild(id: string) {
           </template>
 
           <DataFormView v-model="location" :schema="detailsSchema" endpoint="/inventory/locations"
-            :entity-id="currentLocationId!" save-mode="put" layout="two-column" @save="handleSave"
+            :entity-id="locationId" save-mode="put" layout="two-column" @save="handleSave"
             @save-error="handleSaveError" />
         </UCard>
       </template>
       <template #stock>
-        <DataFormInlineView :items="stockAtLocation || []" :item-schema="stockItemSchema"
-          :display-columns="stockDisplayColumns" :base-endpoint="`/inventory/stock`" title="Stock at this Location"
-          empty-state-message="No stock at this location." @item-updated="handleStockUpdated"
-          @item-deleted="handleStockDeleted" @refresh="handleStockRefresh" />
+        <UCard>
+          <template #header>
+            <h3 class="font-semibold">Stock at this Location</h3>
+          </template>
+
+          <div v-if="groupedStock.length === 0" class="text-center py-8 text-gray-500">
+            No stock at this location.
+          </div>
+
+          <UTable v-else :data="groupedStock" :columns="stockDisplayColumns">
+            <template #part.name-cell="{ row, getValue }">
+              <NuxtLink v-if="row.original.part" :to="`/inventory/${row.original.part.id}`" class="text-primary-500 hover:underline font-medium">
+                {{ getValue() }}
+              </NuxtLink>
+              <span v-else class="text-gray-400">-</span>
+            </template>
+            <template #part.mpn-cell="{ row, getValue }">
+              <span v-if="row.original.part?.mpn" class="font-mono text-gray-500 text-sm">{{ getValue() }}</span>
+              <span v-else class="text-gray-400">-</span>
+            </template>
+          </UTable>
+        </UCard>
       </template>
     </UTabs>
 

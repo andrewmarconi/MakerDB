@@ -39,15 +39,22 @@ async def list_parts(
     """
     List parts with pagination and optional search support.
     """
-    queryset = _get_part_queryset()
+    @sync_to_async
+    def _list():
+        queryset = _get_part_queryset()
 
-    if search:
-        queryset = queryset.filter(
-            Q(name__icontains=search) | Q(mpn__icontains=search) | Q(description__icontains=search)
-        )
+        if search:
+            queryset = queryset.filter(
+                Q(name__icontains=search) | Q(mpn__icontains=search) | Q(description__icontains=search)
+            )
 
-    parts = await sync_to_async(list)(queryset.all()[skip : skip + limit])
-    return parts
+        parts = list(queryset.all()[skip : skip + limit])
+        # Eagerly convert attachments to lists
+        for part in parts:
+            part.__dict__['attachments'] = list(part.attachments.all())
+        return parts
+
+    return await _list()
 
 
 @router.get("/search", response_model=List[PartSchema])
@@ -55,10 +62,17 @@ async def search_parts(q: str = Query(..., min_length=1, description="Search que
     """
     Search parts by name, MPN, or description.
     """
-    parts = await sync_to_async(list)(
-        _get_part_queryset().filter(Q(name__icontains=q) | Q(mpn__icontains=q) | Q(description__icontains=q))[:20]
-    )
-    return parts
+    @sync_to_async
+    def _search():
+        parts = list(
+            _get_part_queryset().filter(Q(name__icontains=q) | Q(mpn__icontains=q) | Q(description__icontains=q))[:20]
+        )
+        # Eagerly convert attachments to lists
+        for part in parts:
+            part.__dict__['attachments'] = list(part.attachments.all())
+        return parts
+
+    return await _search()
 
 
 @router.get("/count", response_model=dict)
@@ -72,11 +86,20 @@ async def count_parts():
 
 @router.get("/{part_id}", response_model=PartSchema)
 async def get_part(part_id: UUID):
-    try:
-        part = await sync_to_async(_get_part_queryset().get)(id=part_id)
-        return part
-    except Part.DoesNotExist:
+    @sync_to_async
+    def _get():
+        try:
+            part = _get_part_queryset().get(id=part_id)
+            # Eagerly convert attachments to lists
+            part.__dict__['attachments'] = list(part.attachments.all())
+            return part
+        except Part.DoesNotExist:
+            return None
+
+    part = await _get()
+    if part is None:
         raise HTTPException(status_code=404, detail="Part not found")
+    return part
 
 
 @router.post("/", response_model=PartSchema, status_code=201)
@@ -107,7 +130,10 @@ async def create_part(data: PartCreate):
                 raise ValueError("Project not found")
 
         part.save()
-        return _get_part_queryset().get(id=part.id)
+        part = _get_part_queryset().get(id=part.id)
+        # Eagerly convert attachments to lists
+        part.__dict__['attachments'] = list(part.attachments.all())
+        return part
 
     try:
         part = await _create()
@@ -165,7 +191,10 @@ async def update_part(part_id: UUID, data: PartUpdate):
             setattr(part, field, value)
 
         part.save()
-        return _get_part_queryset().get(id=part.id)
+        part = _get_part_queryset().get(id=part.id)
+        # Eagerly convert attachments to lists
+        part.__dict__['attachments'] = list(part.attachments.all())
+        return part
 
     try:
         part = await _update()

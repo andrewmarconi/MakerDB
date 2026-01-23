@@ -64,6 +64,7 @@ export type tDataListViewProps = {
     detailRoute?: string;
     cardActions?: tActionConfig[];
     tableActions?: tActionConfig[];
+    filters?: tFilterConfig[];
 };
 
 // ============================================================================

@@ -40,6 +40,14 @@ watch(() => props.viewMode, (val) => {
 const columnVisibility = useStorage<Record<string, boolean>>(`datalistview-${storageKey.value}-columns`, {})
 const page = ref(1)
 
+// Filter state - initialize with filter keys from props
+const filterValues = reactive<Record<string, any>>(
+  props.filters?.reduce((acc, filter) => {
+    acc[filter.key] = undefined
+    return acc
+  }, {} as Record<string, any>) || {}
+)
+
 const modelConfig = computed<typeof MODEL_REGISTRY[ModelKeys]>(() => {
   const config = MODEL_REGISTRY[props.modelKey as ModelKeys]
   if (!config) {
@@ -48,7 +56,16 @@ const modelConfig = computed<typeof MODEL_REGISTRY[ModelKeys]>(() => {
   return config
 })
 
-const apiPath = computed(() => modelConfig.value?.apiPath || '')
+const baseApiPath = computed(() => modelConfig.value?.apiPath || '')
+
+// Use search endpoint when searching, otherwise use regular endpoint
+const apiPath = computed(() => {
+  if (search.value && baseApiPath.value === '/db/inventory/locations') {
+    return '/db/search/locations'
+  }
+  return baseApiPath.value
+})
+
 const detailRoute = computed(() => props.detailRoute || modelConfig.value?.detailRoute || '')
 const createButtonLabel = computed(() => props.createLabel || `New ${modelConfig.value?.label || 'Item'}`)
 const emptyStateMessage = computed(() => props.emptyMessage || `No ${modelConfig.value?.labelPlural || 'items'} found.`)
@@ -60,38 +77,75 @@ const skip = computed(() => (page.value - 1) * props.itemsPerPage)
 
 const itemsQuery = computed(() => {
   const params: Record<string, any> = { skip: skip.value, limit: props.itemsPerPage }
-  if (search.value) params.search = search.value
-  if (props.defaultSort) {
+
+  // Use 'q' parameter for search endpoint, 'search' for regular endpoints
+  if (search.value) {
+    if (apiPath.value.includes('/search/')) {
+      params.q = search.value
+    } else {
+      params.search = search.value
+    }
+  }
+
+  if (props.defaultSort && !search.value) {
+    // Sorting only applies to non-search queries (search has its own relevance ordering)
     const order = props.defaultSort.desc ? '-' : ''
     params.ordering = `${order}${props.defaultSort.id}`
   }
+
+  // Add filter values to query params
+  if (props.filters) {
+    props.filters.forEach(filter => {
+      const value = filterValues[filter.key]
+      if (value !== undefined && value !== null && value !== '') {
+        params[filter.key] = value
+      }
+    })
+  }
+
   return params
 })
 
-const countQuery = computed(() => {
-  if (!search.value) return undefined
-  return { search: search.value }
-})
-
-const { data: items, pending, error, refresh } = await useAsyncData(
-  `${props.modelKey}-items`,
+// Fetch items and count in a single call for search, separate calls for regular listing
+const { data: dataResponse, pending, error, refresh } = await useAsyncData(
+  `${props.modelKey}-data`,
   async () => {
-    const res = await $fetch<T[]>(apiPath.value, { params: itemsQuery.value })
-    return Array.isArray(res) ? res : []
+    const res = await $fetch<any>(apiPath.value, { params: itemsQuery.value })
+
+    // Handle different response formats
+    if (apiPath.value.includes('/search/')) {
+      // Search endpoint returns { results: [], count: number }
+      return {
+        items: res.results || [],
+        count: res.count || 0
+      }
+    } else {
+      // Regular endpoint returns T[], need separate count call
+      const countParams: Record<string, any> = {}
+
+      // Add filter values to count query (but not skip/limit/ordering)
+      if (props.filters) {
+        props.filters.forEach(filter => {
+          const value = filterValues[filter.key]
+          if (value !== undefined && value !== null && value !== '') {
+            countParams[filter.key] = value
+          }
+        })
+      }
+
+      const countRes = await $fetch<{ count: number }>(`${baseApiPath.value}/count`, { params: countParams })
+
+      return {
+        items: Array.isArray(res) ? res : [],
+        count: countRes.count || 0
+      }
+    }
   },
   { watch: [itemsQuery] }
 )
 
-const { data: countData } = await useAsyncData(
-  `${props.modelKey}-count`,
-  async () => {
-    const res = await $fetch<{ count: number }>(`${apiPath.value}/count`, { params: countQuery.value })
-    return res
-  },
-  { watch: [countQuery] }
-)
-
-const total = computed(() => countData.value?.count || 0)
+const items = computed(() => dataResponse.value?.items || [])
+const total = computed(() => dataResponse.value?.count || 0)
 const totalPages = computed(() => Math.ceil(total.value / props.itemsPerPage))
 
 const visibleColumns = computed(() => {
@@ -200,43 +254,77 @@ function getDetailRouteFromItem(item: T) {
       icon="i-lucide-terminal"
     />
 
-    <UCard v-if="canSearch || canColumnToggle || canCreate">
-      <div class="flex flex-col md:flex-row gap-4 mb-4">
-        <UInput
-          v-if="canSearch"
-          v-model="search"
-          icon="i-heroicons-magnifying-glass"
-          placeholder="Search..."
-          class="flex-1"
-          @keydown.enter="page = 1"
-        />
-        <div class="flex items-center gap-2 ml-auto">
-          <slot name="toolbar-actions" />
-          <UButton
-            :color="viewMode === 'table' ? 'primary' : 'neutral'"
-            :variant="viewMode === 'table' ? 'solid' : 'ghost'"
-            icon="i-heroicons-table-cells"
-            size="sm"
-            @click="viewMode = 'table'"
+    <UCard v-if="canSearch || canColumnToggle || canCreate || filters">
+      <div class="flex flex-col gap-4 mb-4">
+        <div class="flex flex-col md:flex-row gap-4">
+          <UInput
+            v-if="canSearch"
+            v-model="search"
+            icon="i-heroicons-magnifying-glass"
+            placeholder="Search..."
+            class="flex-1"
+            @keydown.enter="page = 1"
           />
+          <div class="flex items-center gap-2 ml-auto">
+            <slot name="toolbar-actions" />
+            <UButton
+              :color="viewMode === 'table' ? 'primary' : 'neutral'"
+              :variant="viewMode === 'table' ? 'solid' : 'ghost'"
+              icon="i-heroicons-table-cells"
+              size="sm"
+              @click="viewMode = 'table'"
+            />
+            <UButton
+              :color="viewMode === 'grid' ? 'primary' : 'neutral'"
+              :variant="viewMode === 'grid' ? 'solid' : 'ghost'"
+              icon="i-heroicons-squares-2x2"
+              size="sm"
+              @click="viewMode = 'grid'"
+            />
+            <UDropdownMenu v-if="canColumnToggle" :items="columnToggleItems">
+              <template #default>
+                <UButton icon="i-heroicons-view-columns" color="neutral" variant="ghost" />
+              </template>
+            </UDropdownMenu>
+            <UButton
+              v-if="canCreate"
+              icon="i-heroicons-plus"
+              :label="createButtonLabel"
+              color="primary"
+              :to="createRoute"
+            />
+          </div>
+        </div>
+
+        <!-- Filters Row -->
+        <div v-if="filters && filters.length > 0" class="flex flex-wrap gap-3">
+          <template v-for="filter in filters" :key="filter.key">
+            <USelect
+              v-if="filter.type === 'select'"
+              v-model="filterValues[filter.key]"
+              :placeholder="filter.label"
+              :items="filter.options"
+              value-key="value"
+              clearable
+              class="w-48"
+              @update:model-value="page = 1"
+            />
+            <UInput
+              v-else-if="filter.type === 'input'"
+              v-model="filterValues[filter.key]"
+              :placeholder="filter.label"
+              class="w-48"
+              @keydown.enter="page = 1"
+            />
+          </template>
           <UButton
-            :color="viewMode === 'grid' ? 'primary' : 'neutral'"
-            :variant="viewMode === 'grid' ? 'solid' : 'ghost'"
-            icon="i-heroicons-squares-2x2"
+            v-if="Object.values(filterValues).some(v => v !== undefined && v !== null && v !== '')"
+            icon="i-heroicons-x-mark"
+            label="Clear filters"
+            color="neutral"
+            variant="ghost"
             size="sm"
-            @click="viewMode = 'grid'"
-          />
-          <UDropdownMenu v-if="canColumnToggle" :items="columnToggleItems">
-            <template #default>
-              <UButton icon="i-heroicons-view-columns" color="neutral" variant="ghost" />
-            </template>
-          </UDropdownMenu>
-          <UButton
-            v-if="canCreate"
-            icon="i-heroicons-plus"
-            :label="createButtonLabel"
-            color="primary"
-            :to="createRoute"
+            @click="() => { Object.keys(filterValues).forEach(k => filterValues[k] = undefined); page = 1 }"
           />
         </div>
       </div>

@@ -4,6 +4,7 @@ from typing import List, Optional, Dict, Any, Annotated
 from pydantic import BaseModel, Field, ConfigDict, BeforeValidator
 from uuid import UUID
 from core.schemas import GlobalOpsSchema, AttachmentSchema, convert_m2m_to_list
+from parts.schemas import PartSchema
 
 
 # --- Storage Schemas ---
@@ -98,6 +99,7 @@ class StockUpdate(BaseModel):
 
 class StockSchema(GlobalOpsSchema):
     part_id: UUID
+    part: PartSchema
     storage: StorageSchema
     lot: Optional[LotSchema] = None
     quantity: int

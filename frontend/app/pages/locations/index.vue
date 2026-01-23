@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ColumnDef } from '@tanstack/vue-table'
+import type { tFilterConfig } from '#shared/types'
 
 definePageMeta({
   title: 'Storage Locations'
@@ -16,6 +17,24 @@ const columns: ColumnDef<InventoryLocation>[] = [
 ]
 
 const cardFields = ['description']
+
+const filters: tFilterConfig[] = [
+  {
+    key: 'has_stock',
+    label: 'Stock Status',
+    type: 'select',
+    options: [
+      { label: 'All Locations', value: undefined },
+      { label: 'Has Stock', value: true },
+      { label: 'Empty', value: false }
+    ]
+  },
+  {
+    key: 'tags',
+    label: 'Filter by tags (comma-separated)',
+    type: 'input'
+  }
+]
 
 const showDeleteModal = ref(false)
 const locationToDelete = ref<InventoryLocation | null>(null)
@@ -55,6 +74,7 @@ const cardActions = computed(() => [
 </script>
 
 <template>
+  <div>
   <DataListView
     model-key="locations"
     :column-defs="columns"
@@ -62,6 +82,7 @@ const cardActions = computed(() => [
     :card-actions="cardActions"
     :can-delete="false"
     :default-sort="{ id: 'name', desc: false }"
+    :filters="filters"
   />
 
   <UModal v-model:open="showDeleteModal">
@@ -91,4 +112,5 @@ const cardActions = computed(() => [
       </UCard>
     </template>
   </UModal>
+</div>
 </template>

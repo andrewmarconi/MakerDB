@@ -18,6 +18,7 @@ from parts.models import Part
 from procurement.models import Order
 from asgiref.sync import sync_to_async
 from django.db import transaction
+from django.db.models import Exists, OuterRef, Sum
 import logging
 
 
@@ -56,24 +57,105 @@ def _get_storage_queryset():
 
 
 @router.get("/locations", response_model=List[StorageSchema])
-async def list_locations(skip: int = Query(0, ge=0), limit: int = Query(100, ge=1, le=1000)):
-    locations = await sync_to_async(list)(_get_storage_queryset().all()[skip : skip + limit])
+async def list_locations(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    has_stock: bool = Query(None, description="Filter by stock status (true=has stock, false=empty)"),
+    parent_id: UUID = Query(None, description="Filter by parent location"),
+    tags: str = Query(None, description="Filter by tags (comma-separated)"),
+):
+    """
+    List storage locations with optional filters.
+    For search, use /search/locations endpoint instead.
+    """
+
+    @sync_to_async
+    def _list_locations():
+        queryset = _get_storage_queryset()
+
+        # Apply filters
+        if has_stock is not None:
+            if has_stock:
+                # Locations that have at least one stock entry with quantity > 0
+                queryset = queryset.filter(stock_in_location__quantity__gt=0).distinct()
+            else:
+                # Locations that have no stock entries OR only stock entries with quantity = 0
+                has_stock_subquery = Stock.objects.filter(storage_id=OuterRef("pk"), quantity__gt=0)
+                queryset = queryset.exclude(Exists(has_stock_subquery))
+
+        if parent_id:
+            queryset = queryset.filter(parent_id=parent_id)
+
+        if tags:
+            tag_list = [tag.strip() for tag in tags.split(",") if tag.strip()]
+            for tag in tag_list:
+                queryset = queryset.filter(tags__contains=[tag])
+
+        locations = list(queryset[skip : skip + limit])
+
+        # Eagerly convert attachments to lists
+        for location in locations:
+            location.__dict__['attachments'] = list(location.attachments.all())
+
+        return locations
+
+    locations = await _list_locations()
     return locations
 
 
 @router.get("/locations/count", response_model=dict)
-async def count_locations():
-    count = await sync_to_async(_get_storage_queryset().count)()
+async def count_locations(
+    has_stock: bool = Query(None, description="Filter by stock status (true=has stock, false=empty)"),
+    parent_id: UUID = Query(None, description="Filter by parent location"),
+    tags: str = Query(None, description="Filter by tags (comma-separated)"),
+):
+    """
+    Count storage locations with optional filters.
+    For search, use /search/locations endpoint which includes count in response.
+    """
+
+    @sync_to_async
+    def _count_locations():
+        queryset = _get_storage_queryset()
+
+        # Apply same filters as list_locations
+        if has_stock is not None:
+            if has_stock:
+                queryset = queryset.filter(stock_in_location__quantity__gt=0).distinct()
+            else:
+                has_stock_subquery = Stock.objects.filter(storage_id=OuterRef("pk"), quantity__gt=0)
+                queryset = queryset.exclude(Exists(has_stock_subquery))
+
+        if parent_id:
+            queryset = queryset.filter(parent_id=parent_id)
+
+        if tags:
+            tag_list = [tag.strip() for tag in tags.split(",") if tag.strip()]
+            for tag in tag_list:
+                queryset = queryset.filter(tags__contains=[tag])
+
+        return queryset.count()
+
+    count = await _count_locations()
     return {"count": count}
 
 
 @router.get("/locations/{location_id}", response_model=StorageSchema)
 async def get_location(location_id: UUID):
-    try:
-        location = await sync_to_async(_get_storage_queryset().get)(id=location_id)
-        return location
-    except Storage.DoesNotExist:
+    @sync_to_async
+    def _get():
+        try:
+            location = _get_storage_queryset().get(id=location_id)
+            # Eagerly convert attachments to lists
+            location.__dict__['attachments'] = list(location.attachments.all())
+            return location
+        except Storage.DoesNotExist:
+            return None
+
+    location = await _get()
+    if location is None:
         raise HTTPException(status_code=404, detail="Storage location not found")
+    return location
 
 
 @router.post("/locations", response_model=StorageSchema, status_code=201)
@@ -83,7 +165,10 @@ async def create_location(data: StorageCreate):
     @sync_to_async
     def _create():
         location = Storage.objects.create(**data.model_dump())
-        return _get_storage_queryset().get(id=location.id)
+        location = _get_storage_queryset().get(id=location.id)
+        # Eagerly convert attachments to lists
+        location.__dict__['attachments'] = list(location.attachments.all())
+        return location
 
     location = await _create()
     return location
@@ -115,6 +200,8 @@ async def update_location(location_id: UUID, data: StorageUpdate):
 
                 # Refresh from DB to ensure we returning the current state
                 updated = _get_storage_queryset().get(id=location.id)
+                # Eagerly convert attachments to lists
+                updated.__dict__['attachments'] = list(updated.attachments.all())
                 logger.info(f"Successfully updated location {location_id}")
                 return updated
         except Exception as e:
@@ -160,48 +247,123 @@ async def delete_location(location_id: UUID):
 
 
 def _get_stock_queryset():
-    return Stock.objects.select_related("part", "storage", "lot").prefetch_related(
-        "storage__attachments", "lot__attachments"
+    return Stock.objects.select_related(
+        "part__manufacturer",
+        "part__default_storage",
+        "part__project",
+        "storage",
+        "lot"
+    ).prefetch_related(
+        "storage__attachments",
+        "lot__attachments",
+        "part__attachments"
     )
 
 
 @router.get("/stock", response_model=List[StockSchema])
 async def list_stock(skip: int = Query(0, ge=0), limit: int = Query(100, ge=1, le=1000)):
-    stock = await sync_to_async(list)(_get_stock_queryset().all()[skip : skip + limit])
-    return stock
+    @sync_to_async
+    def _list():
+        from django.db.models import Sum
+
+        stock_items = list(_get_stock_queryset().all()[skip : skip + limit])
+
+        # Calculate total_stock for all parts at once
+        part_ids = [stock.part_id for stock in stock_items if stock.part_id]
+        if part_ids:
+            part_totals = dict(
+                Stock.objects.filter(
+                    part_id__in=part_ids,
+                    status__isnull=True
+                )
+                .values('part_id')
+                .annotate(total=Sum('quantity'))
+                .values_list('part_id', 'total')
+            )
+        else:
+            part_totals = {}
+
+        # Eagerly convert attachments and add total_stock
+        for stock in stock_items:
+            if stock.storage:
+                stock.storage.__dict__['attachments'] = list(stock.storage.attachments.all())
+            if stock.lot:
+                stock.lot.__dict__['attachments'] = list(stock.lot.attachments.all())
+            if stock.part:
+                stock.part.__dict__['attachments'] = list(stock.part.attachments.all())
+                stock.part.total_stock = part_totals.get(stock.part.id, 0)
+
+        return stock_items
+
+    return await _list()
 
 
 @router.get("/locations/{location_id}/stock", response_model=List[StockSchema])
 async def get_stock_by_location(location_id: UUID):
     """Get all stock entries for a specific location."""
-    try:
-        location = await sync_to_async(Storage.objects.get)(id=location_id)
-    except Storage.DoesNotExist:
+
+    @sync_to_async
+    def _get_stock():
+        from django.db.models import Sum, Q
+
+        try:
+            location = Storage.objects.get(id=location_id)
+        except Storage.DoesNotExist:
+            return None
+
+        stock_items = list(
+            Stock.objects.filter(storage=location)
+            .select_related(
+                "part__manufacturer",
+                "part__default_storage",
+                "part__project",
+                "storage",
+                "lot"
+            )
+            .prefetch_related(
+                "storage__attachments",
+                "lot__attachments",
+                "part__attachments"
+            )
+            .all()
+        )
+
+        # Calculate total_stock for all parts at once (avoid N+1 queries)
+        part_ids = [stock.part_id for stock in stock_items if stock.part_id]
+        if part_ids:
+            part_totals = dict(
+                Stock.objects.filter(
+                    part_id__in=part_ids,
+                    status__isnull=True
+                )
+                .values('part_id')
+                .annotate(total=Sum('quantity'))
+                .values_list('part_id', 'total')
+            )
+        else:
+            part_totals = {}
+
+        # Eagerly convert attachments to lists to avoid async context issues
+        # We replace the ManyRelatedManager with a list so Pydantic doesn't try to query it
+        for stock in stock_items:
+            if stock.storage:
+                attachments_list = list(stock.storage.attachments.all())
+                stock.storage.__dict__['attachments'] = attachments_list
+            if stock.lot:
+                attachments_list = list(stock.lot.attachments.all())
+                stock.lot.__dict__['attachments'] = attachments_list
+            if stock.part:
+                attachments_list = list(stock.part.attachments.all())
+                stock.part.__dict__['attachments'] = attachments_list
+                # Add total_stock from pre-calculated totals
+                stock.part.total_stock = part_totals.get(stock.part.id, 0)
+
+        return stock_items
+
+    stock = await _get_stock()
+    if stock is None:
         raise HTTPException(status_code=404, detail="Storage location not found")
 
-    stock = await sync_to_async(list)(
-        Stock.objects.filter(storage=location)
-        .select_related("part", "storage", "lot")
-        .prefetch_related("storage__attachments", "lot__attachments")
-        .all()
-    )
-    return stock
-
-
-@router.get("/locations/{location_id}/stock", response_model=List[StockSchema])
-async def get_stock_by_location(location_id: UUID):
-    """Get all stock entries for a specific location."""
-    try:
-        location = await sync_to_async(Storage.objects.get)(id=location_id)
-    except Storage.DoesNotExist:
-        raise HTTPException(status_code=404, detail="Storage location not found")
-
-    stock = await sync_to_async(list)(
-        Stock.objects.filter(storage=location)
-        .select_related("part", "storage", "lot")
-        .prefetch_related("storage__attachments", "lot__attachments")
-        .all()
-    )
     return stock
 
 
@@ -213,11 +375,35 @@ async def count_stock():
 
 @router.get("/stock/{stock_id}", response_model=StockSchema)
 async def get_stock(stock_id: UUID):
-    try:
-        stock = await sync_to_async(_get_stock_queryset().get)(id=stock_id)
+    @sync_to_async
+    def _get():
+        from django.db.models import Sum
+
+        try:
+            stock = _get_stock_queryset().get(id=stock_id)
+        except Stock.DoesNotExist:
+            return None
+
+        # Eagerly convert attachments
+        if stock.storage:
+            stock.storage.__dict__['attachments'] = list(stock.storage.attachments.all())
+        if stock.lot:
+            stock.lot.__dict__['attachments'] = list(stock.lot.attachments.all())
+        if stock.part:
+            stock.part.__dict__['attachments'] = list(stock.part.attachments.all())
+            # Calculate total_stock for this part
+            total = Stock.objects.filter(
+                part=stock.part,
+                status__isnull=True
+            ).aggregate(total=Sum('quantity'))['total'] or 0
+            stock.part.total_stock = total
+
         return stock
-    except Stock.DoesNotExist:
+
+    stock = await _get()
+    if stock is None:
         raise HTTPException(status_code=404, detail="Stock entry not found")
+    return stock
 
 
 @router.post("/stock", response_model=StockSchema, status_code=201)
@@ -246,9 +432,27 @@ async def create_stock(data: StockCreate):
             except Lot.DoesNotExist:
                 raise ValueError("Lot not found", 400)
 
+        from django.db.models import Sum
+
         stock_data = data.model_dump(exclude={"part_id", "storage_id", "lot_id"})
         stock = Stock.objects.create(part=part, storage=storage, lot=lot, **stock_data)
-        return _get_stock_queryset().get(id=stock.id)
+        stock = _get_stock_queryset().get(id=stock.id)
+
+        # Eagerly convert attachments
+        if stock.storage:
+            stock.storage.__dict__['attachments'] = list(stock.storage.attachments.all())
+        if stock.lot:
+            stock.lot.__dict__['attachments'] = list(stock.lot.attachments.all())
+        if stock.part:
+            stock.part.__dict__['attachments'] = list(stock.part.attachments.all())
+            # Calculate total_stock
+            total = Stock.objects.filter(
+                part=stock.part,
+                status__isnull=True
+            ).aggregate(total=Sum('quantity'))['total'] or 0
+            stock.part.total_stock = total
+
+        return stock
 
     try:
         stock = await _create()
@@ -294,7 +498,25 @@ async def update_stock(stock_id: UUID, data: StockUpdate):
             setattr(stock, field, value)
 
         stock.save()
-        return _get_stock_queryset().get(id=stock.id)
+        stock = _get_stock_queryset().get(id=stock.id)
+
+        # Eagerly convert attachments
+        from django.db.models import Sum
+
+        if stock.storage:
+            stock.storage.__dict__['attachments'] = list(stock.storage.attachments.all())
+        if stock.lot:
+            stock.lot.__dict__['attachments'] = list(stock.lot.attachments.all())
+        if stock.part:
+            stock.part.__dict__['attachments'] = list(stock.part.attachments.all())
+            # Calculate total_stock
+            total = Stock.objects.filter(
+                part=stock.part,
+                status__isnull=True
+            ).aggregate(total=Sum('quantity'))['total'] or 0
+            stock.part.total_stock = total
+
+        return stock
 
     try:
         stock = await _update()
@@ -331,7 +553,15 @@ def _get_lot_queryset():
 
 @router.get("/lots", response_model=List[LotSchema])
 async def list_lots(skip: int = Query(0, ge=0), limit: int = Query(100, ge=1, le=1000)):
-    lots = await sync_to_async(list)(_get_lot_queryset().all()[skip : skip + limit])
+    @sync_to_async
+    def _list():
+        lots = list(_get_lot_queryset().all()[skip : skip + limit])
+        # Eagerly convert attachments to lists
+        for lot in lots:
+            lot.__dict__['attachments'] = list(lot.attachments.all())
+        return lots
+
+    lots = await _list()
     return lots
 
 
@@ -343,11 +573,20 @@ async def count_lots():
 
 @router.get("/lots/{lot_id}", response_model=LotSchema)
 async def get_lot(lot_id: UUID):
-    try:
-        lot = await sync_to_async(_get_lot_queryset().get)(id=lot_id)
-        return lot
-    except Lot.DoesNotExist:
+    @sync_to_async
+    def _get():
+        try:
+            lot = _get_lot_queryset().get(id=lot_id)
+            # Eagerly convert attachments to lists
+            lot.__dict__['attachments'] = list(lot.attachments.all())
+            return lot
+        except Lot.DoesNotExist:
+            return None
+
+    lot = await _get()
+    if lot is None:
         raise HTTPException(status_code=404, detail="Lot not found")
+    return lot
 
 
 @router.post("/lots", response_model=LotSchema, status_code=201)
@@ -367,7 +606,10 @@ async def create_lot(data: LotCreate):
                 raise ValueError("Order not found", 400)
 
         lot = Lot.objects.create(order=order, **lot_data)
-        return _get_lot_queryset().get(id=lot.id)
+        lot = _get_lot_queryset().get(id=lot.id)
+        # Eagerly convert attachments to lists
+        lot.__dict__['attachments'] = list(lot.attachments.all())
+        return lot
 
     try:
         lot = await _create()
@@ -406,7 +648,10 @@ async def update_lot(lot_id: UUID, data: LotUpdate):
             setattr(lot, field, value)
 
         lot.save()
-        return _get_lot_queryset().get(id=lot.id)
+        lot = _get_lot_queryset().get(id=lot.id)
+        # Eagerly convert attachments to lists
+        lot.__dict__['attachments'] = list(lot.attachments.all())
+        return lot
 
     try:
         lot = await _update()
@@ -420,8 +665,6 @@ async def update_lot(lot_id: UUID, data: LotUpdate):
 async def get_low_stock_alerts():
     @sync_to_async
     def _get_low_stock():
-        from django.db.models import Sum
-
         alerts = []
         parts = Part.objects.filter(low_stock_threshold__isnull=False).prefetch_related("stock_entries")
         for part in parts:
@@ -447,8 +690,6 @@ async def get_low_stock_alerts():
 async def get_storage_occupancy():
     @sync_to_async
     def _get_occupancy():
-        from django.db.models import Sum
-
         locations = list(Storage.objects.all())
         total_locations = len(locations)
         used_locations = 0
