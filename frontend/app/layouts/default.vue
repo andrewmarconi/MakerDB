@@ -3,8 +3,7 @@
     <UDashboardSidebar collapsible>
       <template #header="{ collapsed }">
         <NuxtLink to="/" class="flex items-center justify-center w-full border-b border-gray-200 dark:border-gray-800" :class="collapsed ? 'h-16 py-2' : 'h-[--ui-header-height] py-3'">
-          <img v-if="collapsed" src="/makerdb-logo-small.png" alt="MakerDB" class="h-full w-auto object-contain" />
-          <img v-else src="/makerdb-logo-wide.png" alt="MakerDB" class="h-7 max-h-[48px] w-auto object-contain" />
+          <AdaptingLogo :size="collapsed ? 'small' : 'large'" />
         </NuxtLink>
       </template>
 
